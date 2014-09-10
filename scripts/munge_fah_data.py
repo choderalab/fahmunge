@@ -9,7 +9,7 @@ projects = pd.read_csv("./projects.csv", index_col=0)
 output_path = "/data/choderalab/fah/munged/"
 
 for (project, location, pdb) in projects.iterrows():
-
+    print(project, location, pdb)
     allatom_output_path = os.path.join(output_path, project, "allatoms")
     protein_output_path = os.path.join(output_path, project, "protein")
 
