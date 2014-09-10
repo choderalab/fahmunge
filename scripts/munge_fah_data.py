@@ -14,7 +14,7 @@ for (project, location, pdb) in projects.itertuples():
     protein_output_path = os.path.join(output_path, str(project), "protein/")
     fahmunge.automation.make_path(allatom_output_path)
     fahmunge.automation.make_path(protein_output_path)
-    #fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb)
+    fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb)
     trj0 = md.load(pdb)  # Hacky temporary solution.
     top, bonds = trj0.top.to_dataframe()
     protein_atom_indices = top.index[top.chainID == 0].values    
