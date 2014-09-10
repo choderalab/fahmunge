@@ -57,7 +57,7 @@ def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, 
     Assumes each run has the same number of clones.
     """
     in_filenames = glob.glob(os.path.join(path_to_merged_trajectories, "*.h5"))
-    for in_filename in filenames:
+    for in_filename in in_filenames:
         print("Stripping %s" % in_filename)
 
         if not os.path.exists(in_filename):
