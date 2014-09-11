@@ -50,6 +50,8 @@ def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, 
         Path to put stripped trajectories
     protein_atom_indices : np.ndarray, dtype='int'
         Atom indices for protein atoms (or more generally, atoms to keep).
+    min_num_frames : int, optional, default=1
+        Skip if below this number.
 
     Notes
     -----
