@@ -32,6 +32,9 @@ import os
 import sys
 import glob
 import tarfile
+from mdtraj.formats.hdf5 import HDF5TrajectoryFile
+import mdtraj as md
+import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
 
@@ -64,6 +67,66 @@ def keynat(string):
 ##############################################################################
 
 
+def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_num_frames=1):
+    
+    if not os.path.exists(allatom_filename):
+        print("Skipping, %s not found" % allatom_filename)
+        return
+
+    trj_allatom = HDF5TrajectoryFile(allatom_filename, mode='r')
+    
+    if len(trj_allatom) < min_num_frames:
+        print("Must have at least %d frames in %s to proceed!" % (min_num_frames, allatom_filename))
+        return
+
+    if hasattr(trj_allatom.root, "processed_filenames"):
+        key = "processed_filenames"  # Core17, Core18 style data
+    elif hasattr(trj_allatom.root, "processed_directories"):
+        key = "processed_directories"  # Siegetank style data
+    else:
+        raise(ValueError("Can't find processed files in %s" % allatom_filename))
+
+    trj_protein = HDF5TrajectoryFile(protein_filename, mode='a')
+
+    try:
+        trj_protein._create_earray(where='/', name=key, atom=tables.StringAtom(1024), shape=(0,))
+        trj_protein.topology = trj_allatom.topology.subset(protein_atom_indices)
+    except tables.NodeError:
+        pass
+
+    n_frames_allatom = len(trj_allatom)
+    try:
+        n_frames_protein = len(trj_protein)
+    except tables.NoSuchNodeError:
+        n_frames_protein = 0
+
+    filenames_allatom = getattr(trj_allatom.root, key)
+    filenames_protein = getattr(trj_protein._handle.root, key)  # Hacky workaround of MDTraj bug #588
+    
+    n_files_allatom = len(filenames_allatom)
+    n_files_protein = len(filenames_protein)
+    print("Found %d,%d filenames and %d,%d frames in %s and %s, respectively." % (n_files_allatom, n_files_protein, n_frames_allatom, n_frames_protein, allatom_filename, protein_filename))
+    
+    if n_frames_protein > n_frames_allatom:
+        raise(ValueError("Found more frames in protein trajectory (%d) than allatom trajectory (%d)" % (n_frames_protein, n_frames_allatom)))
+    
+    if n_files_protein > n_files_allatom:
+        raise(ValueError("Found more filenames in protein trajectory (%d) than allatom trajectory (%d)" % (n_files_protein, n_files_allatom)))
+    
+    if n_frames_protein == n_frames_allatom or n_files_allatom == n_files_protein:
+        if not (n_frames_protein == n_frames_allatom and n_files_allatom == n_files_protein):
+            raise(ValueError("The trajectories must match in BOTH n_frames and n_filenames or NEITHER."))
+        else:
+            print("Same number of frames and filenames found, skipping.")
+            return
+
+    trj_allatom.seek(n_frames_protein)  # Jump forward past what we've already stripped.
+    coordinates, time, cell_lengths, cell_angles, velocities, kineticEnergy, potentialEnergy, temperature, alchemicalLambda = trj_allatom.read()
+    trj_protein.write(coordinates=coordinates[:, protein_atom_indices], time=time)  # Ignoring the other fields for now, TODO.
+
+    filenames_protein.append(filenames_allatom[n_files_protein:])
+
+
 def concatenate_core17(path, top, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
     
@@ -81,10 +144,6 @@ def concatenate_core17(path, top, output_filename):
     We use HDF5 because it provides an easy way to store the metadata associated
     with which files have already been processed.
     """
-    
-    from mdtraj.formats.hdf5 import HDF5TrajectoryFile
-    import mdtraj as md
-    
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
     filenames = sorted(filenames, key=keynat)
@@ -134,10 +193,6 @@ def concatenate_ocore(path, top, output_filename):
     We use HDF5 because it provides an easy way to store the metadata associated
     with which files have already been processed.
     """
-    
-    from mdtraj.formats.hdf5 import HDF5TrajectoryFile
-    import mdtraj as md
-    
     sorted_folders = sorted(os.listdir(path), key=lambda value: int(value))
     sorted_folders = [os.path.join(path, folder) for folder in sorted_folders]
     

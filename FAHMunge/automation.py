@@ -39,7 +39,7 @@ def get_num_runs_clones(path):
     return n_runs, n_clones
 
 
-def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, stride=1, min_num_frames=1):
+def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, min_num_frames=1):
     """Strip the water for a set of trajectories.
     
     Parameters
@@ -50,7 +50,6 @@ def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, 
         Path to put stripped trajectories
     protein_atom_indices : np.ndarray, dtype='int'
         Atom indices for protein atoms (or more generally, atoms to keep).
-    stride : int, optional, default=1
 
     Notes
     -----
@@ -59,18 +58,9 @@ def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, 
     in_filenames = glob.glob(os.path.join(path_to_merged_trajectories, "*.h5"))
     for in_filename in in_filenames:
         print("Stripping %s" % in_filename)
-
-        if not os.path.exists(in_filename):
-            continue
-
-        if len(md.formats.HDF5TrajectoryFile(in_filename)) < min_num_frames:
-            continue
-
-        trj = md.load(in_filename, atom_indices=protein_atom_indices, stride=stride)
-        base_filename = os.path.basename(in_filename)
-        out_filename = os.path.join(output_path, base_filename)
-        trj.save(out_filename)
-
+        protein_filename = os.path.join(output_path, os.path.basename(in_filename))
+        fah.strip_water(in_filename, protein_filename, protein_atom_indices, min_num_frames=min_num_frames)
+        
 
 def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
     """Strip the water for a set of trajectories.
