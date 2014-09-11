@@ -22,4 +22,5 @@ for iteration in itertools.count():
         top, bonds = trj0.top.to_dataframe()
         protein_atom_indices = top.index[top.chainID == 0].values    
         fahmunge.automation.strip_water(allatom_output_path, protein_output_path, protein_atom_indices)
+    print("Finished iteration %d, sleeping." % iteration)
     time.sleep(3600)
