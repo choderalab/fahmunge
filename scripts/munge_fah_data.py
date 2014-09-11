@@ -10,8 +10,8 @@ output_path = "/data/choderalab/fah/munged/"
 
 for (project, location, pdb) in projects.itertuples():
     print(project, location, pdb)
-    allatom_output_path = os.path.join(output_path, str(project), "allatoms/")
-    protein_output_path = os.path.join(output_path, str(project), "protein/")
+    allatom_output_path = os.path.join(output_path, "allatoms/", "%s/" % project)
+    protein_output_path = os.path.join(output_path, "protein/", "%s/" % project)
     fahmunge.automation.make_path(allatom_output_path)
     fahmunge.automation.make_path(protein_output_path)
     fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb)
