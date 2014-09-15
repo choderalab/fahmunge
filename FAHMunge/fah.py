@@ -29,7 +29,6 @@ Code for merging and munging trajectories from FAH datasets.
 
 from __future__ import print_function, division
 import os
-import sys
 import glob
 import tarfile
 from mdtraj.formats.hdf5 import HDF5TrajectoryFile
@@ -37,8 +36,6 @@ import mdtraj as md
 import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
-
-__all__ = ['import_']
 
 def keynat(string):
     '''A natural sort helper function for sort() and sorted()
@@ -141,7 +138,7 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
 
     trj_allatom.seek(n_frames_protein)  # Jump forward past what we've already stripped.
     coordinates, time, cell_lengths, cell_angles, velocities, kineticEnergy, potentialEnergy, temperature, alchemicalLambda = trj_allatom.read()
-    trj_protein.write(coordinates=coordinates[:, protein_atom_indices], time=time)  # Ignoring the other fields for now, TODO.
+    trj_protein.write(coordinates=coordinates[:, protein_atom_indices], time=time, cell_lengths=cell_lengths, cell_angles=cell_angles)  # Ignoring the other fields for now, TODO.
 
     filenames_protein.append(filenames_allatom[n_files_protein:])
 
