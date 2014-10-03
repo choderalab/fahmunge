@@ -89,4 +89,8 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
             out_filename = os.path.join(output_data_path, "run%d-clone%d.h5" % (run, clone))
             print(path)
             print(out_filename)
-            fah.concatenate_core17(path, top, out_filename)
+            try:
+                fah.concatenate_core17(path, top, out_filename)
+            except RuntimeError:
+                print("Cannot munge RUN%d CLONE%d due to damaged XTC." % (run, clone))
+                continue
