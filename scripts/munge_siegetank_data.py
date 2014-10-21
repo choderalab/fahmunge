@@ -5,7 +5,7 @@ import os
 import glob
 import mdtraj as md
 import fahmunge
-import siegetank
+import siegetank  # required python >= 3
 import pandas as pd
 
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
@@ -14,7 +14,9 @@ import pandas as pd
 projects = [
     {
         'user_id': 'xxx',
-        'target_id': 'xxx'
+        'target_id': 'xxx',
+        'cc' : 'if necessary',
+        'mode' : 'no-solvent'  # maybe with/without counterions, etc. could also also for more types than just with/without water?!?
     },
     {
         'user_id': 'xxx',
