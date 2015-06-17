@@ -1,5 +1,28 @@
 ## FAHMunge
 
+#### How to use
+
+0.  Install FAHMunge via setup.py using anaconda (not system) python
+1.  Login to work server using the usual FAH login
+2.  Check if script is running (`screen -r -d`).  If True, stop here.
+3.  Start a screen session
+4.  `cd /data/choderalab/fah/Software/FAHMunge`
+5.  `/data/choderalab/anaconda/bin/python scripts/munge_fah_data.py`
+6.  To stop, control c when the script is in the "sleep" phase
+
+The metadata for FAH is a CSV file located here:
+
+/data/choderalab/fah/Software/FAHMunge/projects.csv
+
+#### Single vs. multi process
+
+There is also a multiprocessing version in the `scripts/` folder.  However,
+the scripts generate potentially large temporary files.  The single process
+version seems to put less strain on the `/tmp` filesystem, so we prefer that
+right now.
+
+#### More description
+
 Overall Pipeline (Core17/18):
 
 1.  Extract XTC data from bzips
@@ -14,9 +37,4 @@ General instructions:
 3.  Run scripts/munge_fah_data.py in a screen session
 4.  rsync your stripped data to analysis machines periodically.  
 
-Note: the rate limiting step appears to be bunzip.  This suggests that we might
-be able to run several instances of the script in parallel.  For example, one for each project.  
-That should lead to improved performance.  
-
-ToDo
-Some of the same code should be re-usable for OCore based projects.  
+Note: the rate limiting step appears to be bunzip.  
