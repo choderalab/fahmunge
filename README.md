@@ -38,3 +38,23 @@ General instructions:
 4.  rsync your stripped data to analysis machines periodically.  
 
 Note: the rate limiting step appears to be bunzip.  
+
+#### Sync to `hal.cbio.mskcc.org`
+
+Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal.cbio.mskcc.org` via the `choderalab` robot user account to:
+```
+/cbio/jclab/projects/fah/fah-data/munged
+```
+This is done via a `crontab`:
+```
+26 14 * * * rsync -avz --chmod=g-w,o-w server@plfah1.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged
+35 14 * * * rsync -avz --chmod=g-w,o-w server@plfah2.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged
+```
+To install this `crontab` as the `choderalab` user:
+```bash
+crontab ~/crontab
+```
+To list the active `crontab`:
+```bash
+crontab -l
+```
