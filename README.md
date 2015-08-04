@@ -47,8 +47,10 @@ Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal
 ```
 This is done via a `crontab`:
 ```
-26 14 * * * rsync -avz --chmod=g-w,o-w server@plfah1.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged
-35 14 * * * rsync -avz --chmod=g-w,o-w server@plfah2.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged
+04 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah1-rsync-no-solvent.log 2>&1
+39 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah2-rsync-no-solvent.log 2>&1
+34 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged/all-atoms /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah1-rsync-all-atoms.log 2>&1
+50 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged/all-atoms /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah2-rsync-all-atoms.log 2>&1
 ```
 To install this `crontab` as the `choderalab` user:
 ```bash
@@ -57,4 +59,11 @@ crontab ~/crontab
 To list the active `crontab`:
 ```bash
 crontab -l
+```
+Transfers are logged in the `choderalab` account:
+```
+plfah1-rsync-all-atoms.log
+plfah1-rsync-no-solvent.log
+plfah2-rsync-all-atoms.log
+plfah2-rsync-no-solvent.log
 ```
