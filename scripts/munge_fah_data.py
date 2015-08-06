@@ -20,9 +20,6 @@ for iteration in itertools.count():
         fahmunge.automation.make_path(allatom_output_path)
         fahmunge.automation.make_path(protein_output_path)
         fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb)
-        trj0 = md.load(pdb)  # Hacky temporary solution to get protein atoms, fix later.
-        top, bonds = trj0.top.to_dataframe()
-        protein_atom_indices = top.index[top.chainID == 0].values    
-        fahmunge.automation.strip_water(allatom_output_path, protein_output_path, protein_atom_indices)
+        fahmunge.automation.strip_water(allatom_output_path, protein_output_path)
     print("Finished iteration %d, sleeping." % iteration)
     time.sleep(3600)
