@@ -63,7 +63,7 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1):
         topology=t.top.select('protein')
         print("Stripping %s" % in_filename)
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
-        fah.strip_water(in_filename, plsrotein_filename, topology, min_num_frames=min_num_frames)
+        fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
         
 
 def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
