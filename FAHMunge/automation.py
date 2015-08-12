@@ -84,7 +84,7 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
     """
     n_runs, n_clones = get_num_runs_clones(input_data_path)
     for run in range(n_runs):
-        top=md.load(os.path.join(top_filename,"RUN%(run)d" % vars(),"system.pdb" ))
+        top=md.load(top_filename % vars())
         for clone in range(n_clones):
             print(run, clone)
             path = os.path.join(input_data_path, "RUN%d" % run, "CLONE%d" % clone)
