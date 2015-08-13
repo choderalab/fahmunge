@@ -39,7 +39,7 @@ def get_num_runs_clones(path):
     return n_runs, n_clones
 
 
-def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, min_num_frames=1):
+def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1):
     """Strip the water for a set of trajectories.
     
     Parameters
@@ -59,9 +59,11 @@ def strip_water(path_to_merged_trajectories, output_path, protein_atom_indices, 
     """
     in_filenames = glob.glob(os.path.join(path_to_merged_trajectories, "*.h5"))
     for in_filename in in_filenames:
+        t=md.load(in_filename)
+        topology=t.top.select('protein')
         print("Stripping %s" % in_filename)
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
-        fah.strip_water(in_filename, protein_filename, protein_atom_indices, min_num_frames=min_num_frames)
+        fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
         
 
 def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
@@ -80,9 +82,9 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
         for loading the XTC files.
 
     """
-    top = md.load(top_filename)
     n_runs, n_clones = get_num_runs_clones(input_data_path)
     for run in range(n_runs):
+        top=md.load(top_filename % vars())
         for clone in range(n_clones):
             print(run, clone)
             path = os.path.join(input_data_path, "RUN%d" % run, "CLONE%d" % clone)

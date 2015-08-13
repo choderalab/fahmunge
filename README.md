@@ -14,6 +14,19 @@ The metadata for FAH is a CSV file located here:
 
 /data/choderalab/fah/Software/FAHMunge/projects.csv
 
+
+###Example CSV 
+```
+project,location,pdb
+"10491","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10491/","/home/server.140.163.4.245/server2/projects/GPU/p10491/topol-renumbered-explicit.pdb"
+"10492","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10492/topol-renumbered-explicit.pdb"
+"10495","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10495/MTOR_HUMAN_D0/RUN%(run)d/system.pdb"
+```
+pdb points pipeline towards pdb to look at for numbering atoms in the munged data. The top two lines are eamples of using a single pdb for the munging pipeline.
+The third line shows how to use a different pdb for each run. %(run)d is substituted by the run number via filename % vars() in Python, whic allows run numbers 
+or other variables to be substituted. This is done on a per-run basis, not per-clone. 
+
+
 #### Single vs. multi process
 
 There is also a multiprocessing version in the `scripts/` folder.  However,
@@ -67,3 +80,4 @@ plfah1-rsync-no-solvent.log
 plfah2-rsync-all-atoms.log
 plfah2-rsync-no-solvent.log
 ```
+
