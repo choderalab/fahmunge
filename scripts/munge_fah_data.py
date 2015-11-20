@@ -10,7 +10,7 @@ import pandas as pd
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
 projects = pd.read_csv("./projects.csv", index_col=0)
-output_path = "/data/choderalab/fah/munged/"
+output_path = "/data/choderalab/fah/munged2/"
 
 for iteration in itertools.count():
     for (project, location, pdb) in projects.itertuples():
