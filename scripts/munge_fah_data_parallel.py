@@ -13,7 +13,7 @@ import sys
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
 projects = pd.read_csv("./projects.csv", index_col=0)
-output_path = "/data/choderalab/fah/munged_test/"
+output_path = "/data/choderalab/fah/munged/"
 num_processes = 10
 
 def init_work():
