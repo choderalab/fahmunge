@@ -7,11 +7,18 @@ import glob
 import mdtraj as md
 import fahmunge
 import pandas as pd
+import signal
+import sys
 
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
 projects = pd.read_csv("./projects.csv", index_col=0)
-output_path = "/data/choderalab/fah/munged/"
+output_path = "/data/choderalab/fah/munged_test/"
+num_processes = 10
+
+def init_work():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 
 def munge(inputs):
     project, location, pdb = inputs
@@ -21,16 +28,29 @@ def munge(inputs):
     fahmunge.automation.make_path(allatom_output_path)
     fahmunge.automation.make_path(protein_output_path)
     fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb)
-    trj0 = md.load(pdb)  # Hacky temporary solution to get protein atoms, fix later.
-    top, bonds = trj0.top.to_dataframe()
-    protein_atom_indices = top.index[top.chainID == 0].values    
-    fahmunge.automation.strip_water(allatom_output_path, protein_output_path, protein_atom_indices)
+    fahmunge.automation.strip_water(allatom_output_path, protein_output_path)
 
 
-num_processes = 4
-my_pool = Pool(num_processes)
+if __name__ == "__main__":
 
-for iteration in itertools.count():
-    output = my_pool.map(munge, projects.itertuples())
-    print("Finished iteration %d, sleeping." % iteration)
-    time.sleep(3600)
+    print "Creating thread pool..."
+    pool = Pool(num_processes, init_work)
+    for iteration in itertools.count():
+        print "Starting asynchronous map operations..."
+        job = pool.map_async(munge, projects.itertuples())
+
+        while(not job.ready()):
+            try:
+                print "Sleeping for 10 seconds..."
+                time.sleep(10)
+            except KeyboardInterrupt:
+                print "Caught KeyboardInterrupt, terminating workers"
+                pool.terminate()
+                pool.join()
+                sys.exit(1)
+
+        output = job.get()
+        print output
+
+        print("Finished iteration %d, sleeping." % iteration)
+        time.sleep(3600)
