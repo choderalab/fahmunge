@@ -186,7 +186,7 @@ def concatenate_core17(path, top, output_filename):
             trj = md.load("positions.xtc", top=top)
 
             for frame in trj:
-                trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=trj.time)
+                trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles)
             
             trj_file._handle.root.processed_filenames.append([filename])
             
@@ -232,7 +232,7 @@ def concatenate_ocore(path, top, output_filename):
         trj = md.load(xtc_filename, top=top)
         
         for frame in trj:
-            trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=trj.time)
+            trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles)
         
         trj_file._handle.root.processed_folders.append([folder])
             
