@@ -2,6 +2,16 @@ import glob
 import os
 import mdtraj as md
 import fah
+import signal
+import time
+import sys
+from multiprocessing import Pool
+
+def set_signals():
+    """
+    Set signals so that multiprocessing processes are correctly killed.
+    """
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def make_path(filename):
     try:
@@ -38,8 +48,15 @@ def get_num_runs_clones(path):
     
     return n_runs, n_clones
 
-
-def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1):
+def strip_water_wrapper(args):
+    (in_filename, protein_filename, min_num_frames) = args
+    t=md.load(in_filename)
+    topology=t.top.select('protein')
+    print("Stripping %s" % in_filename)
+    fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
+    del t, topology
+    
+def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, nprocesses=None):
     """Strip the water for a set of trajectories.
     
     Parameters
@@ -52,21 +69,50 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1):
         Atom indices for protein atoms (or more generally, atoms to keep).
     min_num_frames : int, optional, default=1
         Skip if below this number.
+    nprocesses : int, optional, default=None
+        If not None, use multiprocessing to parallelize up to the specified number of workers.
 
     Notes
     -----
     Assumes each run has the same number of clones.
     """
+    # Build a list of work.
+    work = list()
     in_filenames = glob.glob(os.path.join(path_to_merged_trajectories, "*.h5"))
     for in_filename in in_filenames:
-        t=md.load(in_filename)
-        topology=t.top.select('protein')
-        print("Stripping %s" % in_filename)
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
-        fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
-        
+        args = (in_filename, protein_filename, min_num_frames)
+        work.append(args)
 
-def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
+    # Do the work in parallel or serial
+    if nprocesses != None:
+        print(nprocesses)
+
+        print("Creating thread pool...")
+        pool = Pool(nprocesses, set_signals)
+        print("Starting asynchronous map operations...")
+        job = pool.map_async(strip_water_wrapper, work)
+        while(not job.ready()):
+            try:
+                print "Sleeping for 10 seconds..."
+                time.sleep(10)
+            except KeyboardInterrupt:
+                print "Caught KeyboardInterrupt, terminating workers"
+                pool.terminate()
+                pool.join()
+                sys.exit(1)
+
+        print('All trajectories merged.')
+        #output = job.get()
+        #print(output)
+    else:
+        # Serial version.
+        map(strip_water_wrapper, work)
+
+def concatenate_core17_filenames_wrapper(args):
+    fah.concatenate_core17_filenames(*args)
+        
+def merge_fah_trajectories(input_data_path, output_data_path, top_filename, nprocesses=None):
     """Strip the water for a set of trajectories.
     
     Parameters
@@ -80,19 +126,41 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename):
     top_filename : str, 
         filename of PDB containing the topology information, necessary
         for loading the XTC files.
+    nprocesses : int, optional, default=None
+        If not None, use multiprocessing to parallelize up to the specified number of workers.
 
     """
+    # Build a list of work to parallelize
     n_runs, n_clones = get_num_runs_clones(input_data_path)
+    work = list()
     for run in range(n_runs):
-        top=md.load(top_filename % vars())
         for clone in range(n_clones):
-            print(run, clone)
             path = os.path.join(input_data_path, "RUN%d" % run, "CLONE%d" % clone)
             out_filename = os.path.join(output_data_path, "run%d-clone%d.h5" % (run, clone))
-            print(path)
-            print(out_filename)
+            args = (path, top_filename % vars(), out_filename)
+            work.append(args)
+
+    # Do the work in parallel or serial
+    if nprocesses != None:
+        print(nprocesses)
+
+        print("Creating thread pool...")
+        pool = Pool(nprocesses, set_signals)
+        print("Starting asynchronous map operations...")
+        job = pool.map_async(concatenate_core17_filenames_wrapper, work)
+        while(not job.ready()):
             try:
-                fah.concatenate_core17(path, top, out_filename)
-            except RuntimeError:
-                print("Cannot munge RUN%d CLONE%d due to damaged XTC." % (run, clone))
-                continue
+                print "Sleeping for 10 seconds..."
+                time.sleep(10)
+            except KeyboardInterrupt:
+                print "Caught KeyboardInterrupt, terminating workers"
+                pool.terminate()
+                pool.join()
+                sys.exit(1)
+
+        print('All trajectories merged.')
+        #output = job.get()
+        #print(output)
+    else:
+        # Serial version.
+        map(fah.concatenate_core17_filenames, work)
