@@ -7,7 +7,7 @@
 2.  Check if script is running (`screen -r -d`).  If True, stop here.
 3.  Start a screen session
 4.  `cd /data/choderalab/fah/Software/FAHMunge`
-5.  `/data/choderalab/anaconda/bin/python scripts/munge_fah_data.py`
+5.  `export PATH=/data/choderalab/anaconda/bin:$PATH; python scripts/munge_fah_data_parallel.py`
 6.  To stop, control c when the script is in the "sleep" phase
 
 The metadata for FAH is a CSV file located here:
@@ -15,7 +15,7 @@ The metadata for FAH is a CSV file located here:
 /data/choderalab/fah/Software/FAHMunge/projects.csv
 
 
-###Example CSV 
+### Example CSV
 ```
 project,location,pdb
 "10491","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10491/","/home/server.140.163.4.245/server2/projects/GPU/p10491/topol-renumbered-explicit.pdb"
@@ -24,7 +24,7 @@ project,location,pdb
 ```
 pdb points pipeline towards pdb to look at for numbering atoms in the munged data. The top two lines are eamples of using a single pdb for the munging pipeline.
 The third line shows how to use a different pdb for each run. %(run)d is substituted by the run number via filename % vars() in Python, whic allows run numbers 
-or other variables to be substituted. This is done on a per-run basis, not per-clone. 
+or other variables to be substituted. This is done on a per-run basis, not per-clone.
 
 
 #### Single vs. multi process
