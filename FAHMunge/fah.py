@@ -94,6 +94,7 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
     print('all-atom trajectory %s has %d frames' % (allatom_filename, len(trj_allatom))) 
     if len(trj_allatom) < min_num_frames:
         print("Must have at least %d frames in %s to proceed!" % (min_num_frames, allatom_filename))
+        del trj_allatom
         return
 
     if hasattr(trj_allatom.root, "processed_filenames"):
@@ -135,6 +136,7 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
             raise(ValueError("The trajectories must match in BOTH n_frames and n_filenames or NEITHER."))
         else:
             print("Same number of frames and filenames found, skipping.")
+            del trj_allatom, trj_protein
             return
 
     trj_allatom.seek(n_frames_protein)  # Jump forward past what we've already stripped.
@@ -142,7 +144,7 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
     trj_protein.write(coordinates=coordinates[:, protein_atom_indices], time=time, cell_lengths=cell_lengths, cell_angles=cell_angles)  # Ignoring the other fields for now, TODO.
 
     filenames_protein.append(filenames_allatom[n_files_protein:])
-
+    del trj_allatom, trj_protein
 
 def concatenate_core17(path, top, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
@@ -221,6 +223,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     filenames = sorted(filenames, key=keynat)
     
     if len(filenames) <= 0:
+        del top
         return
     
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
@@ -246,6 +249,9 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
                     trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
             
                 trj_file._handle.root.processed_filenames.append([filename])
+
+                # Clean up.
+                del archive, trj
 
     except RuntimeError:
         print("Cannot munge RUN%d CLONE%d due to damaged XTC." % (run, clone))
