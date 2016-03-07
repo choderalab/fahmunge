@@ -87,20 +87,25 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
     # Do the work in parallel or serial
     if nprocesses != None:
         print(nprocesses)
-
-        print("Creating thread pool...")
-        pool = Pool(nprocesses, set_signals)
-        print("Starting asynchronous map operations...")
-        job = pool.map_async(strip_water_wrapper, work)
-        while(not job.ready()):
-            try:
-                print "Sleeping for 10 seconds..."
-                time.sleep(10)
-            except KeyboardInterrupt:
-                print "Caught KeyboardInterrupt, terminating workers"
-                pool.terminate()
-                pool.join()
-                sys.exit(1)
+        
+        try:
+            print("Creating thread pool...")
+            pool = Pool(nprocesses, set_signals)
+            print("Starting asynchronous map operations...")
+            job = pool.map_async(strip_water_wrapper, work)
+            while(not job.ready()):
+                try:
+                    print "Sleeping for 10 seconds..."
+                    time.sleep(10)
+                except KeyboardInterrupt:
+                    print "Caught KeyboardInterrupt, terminating workers"
+                    pool.terminate()
+                    pool.join()
+                    sys.exit(1)
+        finally:
+            print "Finished processing work. Cleaning up..."
+            pool.close()
+            pool.join()
 
         print('All trajectories merged.')
         #output = job.get()
@@ -144,19 +149,24 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
     if nprocesses != None:
         print(nprocesses)
 
-        print("Creating thread pool...")
-        pool = Pool(nprocesses, set_signals)
-        print("Starting asynchronous map operations...")
-        job = pool.map_async(concatenate_core17_filenames_wrapper, work)
-        while(not job.ready()):
-            try:
-                print "Sleeping for 10 seconds..."
-                time.sleep(10)
-            except KeyboardInterrupt:
-                print "Caught KeyboardInterrupt, terminating workers"
-                pool.terminate()
-                pool.join()
-                sys.exit(1)
+        try:
+            print("Creating thread pool...")
+            pool = Pool(nprocesses, set_signals)
+            print("Starting asynchronous map operations...")
+            job = pool.map_async(concatenate_core17_filenames_wrapper, work)
+            while(not job.ready()):
+                try:
+                    print "Sleeping for 10 seconds..."
+                    time.sleep(10)
+                except KeyboardInterrupt:
+                    print "Caught KeyboardInterrupt, terminating workers"
+                    pool.terminate()
+                    pool.join()
+                    sys.exit(1)
+        finally:
+            print "Finished processing work. Cleaning up..."
+            pool.close()
+            pool.join()
 
         print('All trajectories merged.')
         #output = job.get()

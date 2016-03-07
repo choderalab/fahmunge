@@ -14,7 +14,7 @@ import sys
 
 projects = pd.read_csv("./projects.csv", index_col=0)
 output_path = "/data/choderalab/fah/munged-with-time/"
-nprocesses = 8
+nprocesses = 16
 
 for iteration in itertools.count():
     for (project, location, pdb) in projects.itertuples():
