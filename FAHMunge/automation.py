@@ -51,7 +51,8 @@ def get_num_runs_clones(path):
 def strip_water_wrapper(args):
     (in_filename, protein_filename, min_num_frames) = args
     t=md.load(in_filename)
-    topology=t.top.select('protein')
+    # add other neutralizing ions if needed
+    topology = t.top.select('not (water or resname NA or resname CL)')
     print("Stripping %s" % in_filename)
     fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
     del t, topology
