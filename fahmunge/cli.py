@@ -67,16 +67,8 @@ def main():
             fahmunge.automation.make_path(protein_output_path)
 
             # Munge data
-            if args.nprocesses == 1:
-                # Use serial codepath
-                # TOOD: Deprecate serial codepath
-                # TODO: Skip strip_water if we are out of time
-                fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb, maxtime=args.time_limit)
-                fahmunge.automation.strip_water(allatom_output_path, protein_output_path, maxtime=args.time_limit)
-            else:
-                # Use parallel codepath
-                fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb, nprocesses=nprocesses, maxtime=args.time_limit)
-                fahmunge.automation.strip_water(allatom_output_path, protein_output_path, nprocesses=nprocesses, maxtime=args.time_limit)
+            fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb, nprocesses=args.nprocesses, maxtime=args.time_limit)
+            fahmunge.automation.strip_water(allatom_output_path, protein_output_path, nprocesses=args.nprocesses, maxtime=args.time_limit)
 
         # Report progress.
         if (args.maximum_iterations == None):

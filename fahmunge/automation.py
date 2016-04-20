@@ -22,30 +22,30 @@ def make_path(filename):
 
 def get_num_runs_clones(path):
     """Get the number of runs and clones.
-    
+
     Parameters
     ----------
     path : str
         Path to FAH data.
-    
+
     Returns
     -------
     n_runs : int
     n_clones : int
-    
+
     Notes
     -----
     Assumes each run has the same number of clones.
     """
     runs = glob.glob(os.path.join(path, "RUN*"))
     n_runs = len(runs)
-    
+
     if n_runs == 0:
         n_clones = 0
     else:
         clones = glob.glob(os.path.join(path, "RUN0", "CLONE*"))
         n_clones = len(clones)
-    
+
     return n_runs, n_clones
 
 def strip_water_wrapper(args):
@@ -56,10 +56,10 @@ def strip_water_wrapper(args):
     print("Stripping %s" % in_filename)
     fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
     del topology
-    
-def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, nprocesses=None):
+
+def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, nprocesses=None, maxtime=None):
     """Strip the water for a set of trajectories.
-    
+
     Parameters
     ----------
     path_to_merged_trajectories : str
@@ -99,7 +99,7 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
     # Do the work in parallel or serial
     if nprocesses != None:
         print(nprocesses)
-        
+
         try:
             print("Creating thread pool...")
             pool = Pool(nprocesses, set_signals)
@@ -128,10 +128,10 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
 
 def concatenate_core17_filenames_wrapper(args):
     fah.concatenate_core17_filenames(*args)
-        
-def merge_fah_trajectories(input_data_path, output_data_path, top_filename, nprocesses=None):
+
+def merge_fah_trajectories(input_data_path, output_data_path, top_filename, nprocesses=None, maxtime=None):
     """Strip the water for a set of trajectories.
-    
+
     Parameters
     ----------
     input_data_path : str
@@ -139,8 +139,8 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
     output_data_path : str
         Path to dump merged HDF5 files with concantenated trajectories.
         Metadata for which files are processed are included INSIDE the HDF5
-        files.  
-    top_filename : str, 
+        files.
+    top_filename : str,
         filename of PDB containing the topology information, necessary
         for loading the XTC files.
     nprocesses : int, optional, default=None
