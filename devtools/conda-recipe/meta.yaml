@@ -17,12 +17,14 @@ requirements:
     - python
     - numpy
     - pandas
+    - pytables
     - mdtraj 1.5.1 # TODO remove me when segment_id bug is fixed (this is installed through openmoltools)
 
   run:
     - python
     - numpy
     - pandas
+    - pytables
     - mdtraj 1.5.1 # TODO remove me when segment_id bug is fixed (this is installed through openmoltools)
 
 test:
