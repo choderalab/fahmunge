@@ -107,15 +107,15 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
             job = pool.map_async(strip_water_wrapper, work)
             while(not job.ready()):
                 try:
-                    print "Sleeping for 10 seconds..."
+                    print("Sleeping for 10 seconds...")
                     time.sleep(10)
                 except KeyboardInterrupt:
-                    print "Caught KeyboardInterrupt, terminating workers"
+                    print("Caught KeyboardInterrupt, terminating workers")
                     pool.terminate()
                     pool.join()
                     sys.exit(1)
         finally:
-            print "Finished processing work. Cleaning up..."
+            print("Finished processing work. Cleaning up...")
             pool.close()
             pool.join()
 
@@ -168,15 +168,15 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
             job = pool.map_async(concatenate_core17_filenames_wrapper, work)
             while(not job.ready()):
                 try:
-                    print "Sleeping for 10 seconds..."
+                    print("Sleeping for 10 seconds...")
                     time.sleep(10)
                 except KeyboardInterrupt:
-                    print "Caught KeyboardInterrupt, terminating workers"
+                    print("Caught KeyboardInterrupt, terminating workers")
                     pool.terminate()
                     pool.join()
                     sys.exit(1)
         finally:
-            print "Finished processing work. Cleaning up..."
+            print("Finished processing work. Cleaning up...")
             pool.close()
             pool.join()
 
