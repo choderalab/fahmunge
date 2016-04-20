@@ -40,6 +40,8 @@ test:
     # Test on some data
     - git clone https://github.com/choderalab/fahmunge-testdata.git
     - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged --maxits 1
+    # TODO: Test to make sure expected output is found
+    - ls -ltr munged
 
 about:
   home: https://github.com/choderalab/fahmunge
