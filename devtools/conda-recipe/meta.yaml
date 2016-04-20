@@ -39,7 +39,7 @@ test:
     - munge-fah-data --help
     # Test on some data
     - git clone https://github.com/choderalab/fahmunge-testdata.git
-    - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged
+    - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged --maxits 1
 
 about:
   home: https://github.com/choderalab/fahmunge
