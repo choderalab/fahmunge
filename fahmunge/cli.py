@@ -14,19 +14,19 @@ import sys
 def main():
     description = 'Munge FAH data'
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-p', '--projects', metavar='PROJECTFILE', dest='projectfile', action='store', default=None,
+    parser.add_argument('-p', '--projects', metavar='PROJECTFILE', dest='projectfile', action='store', type=str, default=None,
         help='CSV file containing (project,filepath,pdbfile) tuples')
-    parser.add_argument('-o', '--outpath', metavar='OUTPATH', dest='output_path', action='store', default=None,
+    parser.add_argument('-o', '--outpath', metavar='OUTPATH', dest='output_path', action='store', type=str, default=None,
         help='Output pathname for munged data')
-    parser.add_argument('-n', '--nprocesses', metavar='NPROCESSES', dest='nprocesses', action='store', default=1,
+    parser.add_argument('-n', '--nprocesses', metavar='NPROCESSES', dest='nprocesses', action='store', type=int, default=1,
         help='For parallel processing, number of processes to use')
-    parser.add_argument('-v', dest='verbose', action='store_true',
+    parser.add_argument('-v', dest='verbose', action='store_true', default=False,
         help='Turn on debug output')
-    parser.add_argument('-t', '--time', metavar='TIME', dest='time_limit', action='store', default=None,
+    parser.add_argument('-t', '--time', metavar='TIME', dest='time_limit', action='store', type=int, default=None,
         help='Process each project for no more than specified time (in seconds) before moving on to next project')
-    parser.add_argument('-m', '--maxits', metavar='MAXITS', dest='maximum_iterations', action='store', default=None,
+    parser.add_argument('-m', '--maxits', metavar='MAXITS', dest='maximum_iterations', action='store', type=int, default=None,
         help='Perform specified number of iterations and exist (default: no limit, process indefinitely)')
-    parser.add_argument('-s', '--sleeptime', metavar='SLEEPTIME', dest='sleep_time', action='store', default=3600,
+    parser.add_argument('-s', '--sleeptime', metavar='SLEEPTIME', dest='sleep_time', action='store', type=int, default=3600,
         help='Sleep for specified time (in seconds) between iterations (default: 3600)')
     args = parser.parse_args()
 
