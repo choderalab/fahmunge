@@ -1,7 +1,7 @@
 import glob
 import os
 import mdtraj as md
-import fah
+from fahmunge import fah
 import signal
 import time
 import sys

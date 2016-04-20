@@ -4,10 +4,11 @@ import numpy as np
 import os
 import glob
 import mdtraj as md
-import fahmunge
 import pandas as pd
 import argparse
 import sys
+
+import fahmunge
 
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
