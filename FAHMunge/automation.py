@@ -49,12 +49,13 @@ def get_num_runs_clones(path):
     return n_runs, n_clones
 
 def strip_water_wrapper(args):
-    (in_filename, protein_filename, min_num_frames) = args
-    t=md.load(in_filename)
-    topology=t.top.select('protein')
+    (in_filename, protein_filename, min_num_frames, topology_selection) = args
+    t=md.load(in_filename)[0]
+    topology = t.top.select(topology_selection)
+    del t
     print("Stripping %s" % in_filename)
     fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
-    del t, topology
+    del topology
     
 def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, nprocesses=None):
     """Strip the water for a set of trajectories.
@@ -79,11 +80,22 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
     # Build a list of work.
     work = list()
     in_filenames = glob.glob(os.path.join(path_to_merged_trajectories, "*.h5"))
+    topology_selection = 'not (water or resname NA or resname CL)'
     for in_filename in in_filenames:
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
-        args = (in_filename, protein_filename, min_num_frames)
+        args = (in_filename, protein_filename, min_num_frames, topology_selection)
         work.append(args)
-
+        # create no-solvent pdbs for all RUNs. Relies on trajectories having
+        # runX-cloneY.h5 filename format
+        pdb_name = os.path.basename(in_filename)
+        pdb_name = pdb_name[:pdb_name.index('-')] + '.pdb'
+        pdb_filename = os.path.join(output_path, pdb_name)
+        if not os.path.exists(pdb_filename):
+            t = md.load(in_filename)[0]
+            topology = t.top.select(topology_selection)
+            no_solvent_t = t.atom_slice(topology)
+            no_solvent_t.save(pdb_filename)
+            del t, topology, no_solvent_t
     # Do the work in parallel or serial
     if nprocesses != None:
         print(nprocesses)
