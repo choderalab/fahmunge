@@ -13,9 +13,9 @@ install:
 script:
   - conda config --add channels $ORGNAME
   - conda build devtools/conda-recipe
-  - source activate _test
-  - conda install --yes --quiet nose nose-timer
-  - cd devtools && nosetests $PACKAGENAME --nocapture --verbosity=2 --with-doctest --with-timer && cd ..
+  #- source activate _test
+  #- conda install --yes --quiet nose nose-timer
+  #- cd devtools && nosetests $PACKAGENAME --nocapture --verbosity=2 --with-doctest --with-timer && cd ..
 env:
   matrix:
     - python=2.7  CONDA_PY=27
@@ -26,7 +26,7 @@ env:
     - ORGNAME="omnia" # the name of the organization
     - PACKAGENAME="fahmunge" # the name of your package
     # encrypted BINSTAR_TOKEN for push of dev package to binstar
-    # - secure: "RRvLDPu9mPoNaRWIseaJdgShOXI+PaHPWKAIJvW7VYWcAS6iEN7W4Fj4zD5hkocQxc3ou97EtkgID+ApH10bSGKxCykyU0urSY9jsSOJX2m0AE19X0dVr6ySIQkwCWE6kUMVlvQYQo80fM2EMElD+btr4G9XBAhArAO7HvZHkoQ="
+    - secure: "InunuUpGbu+tTw0z0bZC2Ddn+Xci99UYcr34Y9tis2qw9sewkYSoJ47ZklA3ld2cJP05tfZ2wn+fOM0q+hibCkicUaZTJPu4ejux+oN3cGwxSrrNUTYO6+8eXQlqY/0B64RYeX2hyP3pRYLlqzseqwmilL5lfiVvdyCkee9ixw0="
 
 after_success:
   - echo "after_success"
