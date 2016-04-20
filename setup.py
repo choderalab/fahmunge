@@ -86,7 +86,7 @@ def git_version():
     return GIT_REVISION
 
 
-def write_version_py(filename='FAHMunge/version.py'):
+def write_version_py(filename='fahmunge/version.py'):
     cnt = """
 # THIS FILE IS GENERATED FROM fahmunge SETUP.PY
 short_version = '%(version)s'
