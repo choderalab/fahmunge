@@ -18,7 +18,7 @@ except ImportError:
 
 
 ##########################
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 ISRELEASED = False
 __version__ = VERSION
 ##########################
@@ -133,5 +133,5 @@ setup(name='fahmunge',
       platforms=['Linux'],
       classifiers=CLASSIFIERS.splitlines(),
       packages=["fahmunge"],
-      package_dir={'fahmunge': 'FAHMunge'},      
+      package_dir={'fahmunge': 'fahmunge'},
       **setup_kwargs)
