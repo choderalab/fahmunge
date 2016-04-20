@@ -1,8 +1,24 @@
 ## FAHMunge
 
-#### How to use
+A tool to automate processing of Folding@home data to produce [mdtraj](http://mdtraj.org/)-compatible trajectory sets.
 
-0.  Install FAHMunge via setup.py using anaconda (not system) python
+#### Authors
+* Kyle A. Beauchamp
+* John D. Chodera
+* Steven Albanese
+* Rafal Wiewiora
+
+#### Installation
+
+The easiest way to install `fahmunge` and its dependencies is via `conda` (preferably [`miniconda`](http://conda.pydata.org/miniconda.html)):
+```bash
+conda install --yes -c omnia fahmunge
+```
+
+#### Using `fahmunge`
+
+**This section needs to be updated**
+
 1.  Login to work server using the usual FAH login
 2.  Check if script is running (`screen -r -d`).  If True, stop here.
 3.  Start a screen session
@@ -10,49 +26,54 @@
 5.  `export PATH=/data/choderalab/anaconda/bin:$PATH; python scripts/munge_fah_data_parallel.py`
 6.  To stop, control c when the script is in the "sleep" phase
 
-The metadata for FAH is a CSV file located here:
-
+The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
+```
 /data/choderalab/fah/Software/FAHMunge/projects.csv
-
-
-### Example CSV
+```
+This file specifies the project number, the location of the FAH data, and a reference PDB file (or files) to be used for munging.
+For example:
 ```
 project,location,pdb
 "10491","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10491/","/home/server.140.163.4.245/server2/projects/GPU/p10491/topol-renumbered-explicit.pdb"
 "10492","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10492/topol-renumbered-explicit.pdb"
 "10495","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10495/MTOR_HUMAN_D0/RUN%(run)d/system.pdb"
 ```
-pdb points pipeline towards pdb to look at for numbering atoms in the munged data. The top two lines are eamples of using a single pdb for the munging pipeline.
-The third line shows how to use a different pdb for each run. %(run)d is substituted by the run number via filename % vars() in Python, whic allows run numbers 
-or other variables to be substituted. This is done on a per-run basis, not per-clone.
-
+`pdb` points the pipeline toward a PDB file to look at for numbering atoms in the munged data.
+The top two lines are examples of using a single PDB for all RUNs in the project.
+The third line shows how to use a different PDB for each RUN.
+`%(run)d` is substituted by the run number via `filename % vars()` in Python, which allows run numbers or other local Python variables to be substituted.
+This is done on a per-run basis, not per-clone.
 
 #### Single vs. multi process
 
-There is also a multiprocessing version in the `scripts/` folder.  However,
-the scripts generate potentially large temporary files.  The single process
-version seems to put less strain on the `/tmp` filesystem, so we prefer that
-right now.
+**This section needs to be updated**
+
+There is also a multiprocessing version in the `scripts/` folder.  
+However, the scripts generate potentially large temporary files.  
+The single process version seems to put less strain on the `/tmp` filesystem, so we prefer that right now.
 
 #### More description
 
 Overall Pipeline (Core17/18):
 
-1.  Extract XTC data from bzips
-2.  Append allatom coordinates and filenames to HDF5 file
-3.  Extract protein coordinates and filenames into a second HDF5 file
+1.  Extract XTC data from `bzip`s
+2.  Append all-atom coordinates and filenames to HDF5 file
+3.  Extract protein coordinates and filenames from the all-atom HDF5 file into a second HDF5 file
 
 
 General instructions:
 
 1.  Run FAH servers
-2.  Edit scripts/munge_fah_data.py to load your FAH data.
-3.  Run scripts/munge_fah_data.py in a screen session
+2.  Edit `scripts/munge_fah_data.py` to load your FAH data.
+3.  Run `scripts/munge_fah_data.py` in a screen session
 4.  rsync your stripped data to analysis machines periodically.  
 
-Note: the rate limiting step appears to be bunzip.  
+#### Efficiency considerations
 
-#### Sync to `hal.cbio.mskcc.org`
+The rate limiting step appears to be `bunzip`.  
+If we can avoid having the trajectories be double-`bzip`ped by the client, this will speed up things immensely.
+
+#### Nightly syncing to `hal.cbio.mskcc.org`
 
 Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal.cbio.mskcc.org` via the `choderalab` robot user account to:
 ```
@@ -80,4 +101,3 @@ plfah1-rsync-no-solvent.log
 plfah2-rsync-all-atoms.log
 plfah2-rsync-no-solvent.log
 ```
-
