@@ -15,17 +15,14 @@ The easiest way to install `fahmunge` and its dependencies is via `conda` (prefe
 conda install --yes -c omnia fahmunge
 ```
 
-#### Using `fahmunge`
+#### Usage
 
-**This section needs to be updated**
+##### Basic Usage
 
-1.  Login to work server using the usual FAH login
-2.  Check if script is running (`screen -r -d`).  If True, stop here.
-3.  Start a screen session
-4.  `cd /data/choderalab/fah/Software/FAHMunge`
-5.  `export PATH=/data/choderalab/anaconda/bin:$PATH; python scripts/munge_fah_data_parallel.py`
-6.  To stop, control c when the script is in the "sleep" phase
-
+Basic usage simply specifies a project CSV file and an output path for the munged data:
+```bash
+munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged-data
+```
 The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
 ```
 /data/choderalab/fah/Software/FAHMunge/projects.csv
@@ -44,6 +41,23 @@ The third line shows how to use a different PDB for each RUN.
 `%(run)d` is substituted by the run number via `filename % vars()` in Python, which allows run numbers or other local Python variables to be substituted.
 This is done on a per-run basis, not per-clone.
 
+##### Advanced Usage
+
+More advanced usage allows additional arguments to be specified:
+* `--nprocesses <NPROCESSES>` will parallelize munging by RUN using `multiprocessing` if `NPROCESSES > 1` is specified. (**NOTE: Parallel processing is still experimental and tends to occasionally corrupt munged trajectories---we are working on fixing this.**) By default, a serial code path is used with `NPROCESSES = 1`.
+* `--time <TIME_LIMIT>` specifies that munging should move on to another phase or project after the given time limit (in seconds) is reached, once it is safe to move on.  This is useful for ensuring that some munging occurs on all projects of interest every day.
+* `--verbose` will produce verbose output
+* `--maxits <MAXITS>` will cause the munging pipeline to run for the specified number of iterations and then exit. This can be useful for debugging. Without specifying this option, munging will run indefinitely.
+* `--sleeptime <SLEEPTIME>` will cause munging to sleep for the specified number of seconds if no work was done in this iteration (default:3600).
+
+#### Usage on `choderalab` Folding@home servers
+
+1.  Login to work server using the usual FAH login
+2.  Check if script is running (`screen -r -d`).  If True, stop here.
+3.  Start a screen session
+4.  Run with: `munge-fah-data --projects /data/choderalab/fah/projects.csv --outpath /data/choderalab/fah/munged-data --time 3600 --nprocesses 16`
+5.  To stop, control c when the script is in the "sleep" phase
+
 #### Single vs. multi process
 
 **This section needs to be updated**
@@ -52,14 +66,13 @@ There is also a multiprocessing version in the `scripts/` folder.
 However, the scripts generate potentially large temporary files.  
 The single process version seems to put less strain on the `/tmp` filesystem, so we prefer that right now.
 
-#### More description
+#### How it works
 
 Overall Pipeline (Core17/18):
 
 1.  Extract XTC data from `bzip`s
 2.  Append all-atom coordinates and filenames to HDF5 file
 3.  Extract protein coordinates and filenames from the all-atom HDF5 file into a second HDF5 file
-
 
 General instructions:
 

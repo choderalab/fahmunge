@@ -8,17 +8,21 @@ source:
 build:
   preserve_egg_dir: True
   number: 0
+  entry_points:
+    - munge-fah-data = fahmunge.cli:main
 
 requirements:
   build:
     - setuptools
     - python
     - numpy
+    - pandas
     - mdtraj-dev
 
   run:
     - python
     - numpy
+    - pandas
     - mdtraj-dev
 
 test:
@@ -28,9 +32,12 @@ test:
     - fahmunge-dev
   imports:
     - fahmunge
-  tests:
+  commands:
     - nosetests fahmunge --nocapture --verbosity=2 --with-doctest --with-timer
-    # TODO: Test command-line stuff
+    - munge-fah-data --help
+    # Test on some data
+    - git clone https://github.com/choderalab/fahmunge-testdata.git
+    - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged
 
 about:
   home: https://github.com/choderalab/fahmunge

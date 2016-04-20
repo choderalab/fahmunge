@@ -66,7 +66,7 @@ def keynat(string):
 
 def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_num_frames=1):
     """Strip water (or other) atoms from a Core17, Core18, or OCore FAH HDF5 trajectory.
-    
+
     Parameters
     ----------
     allatom_filename : str
@@ -84,14 +84,14 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
     min_num_frames : int, optional, default=1
         Skip if below this number.
 
-    """    
+    """
     if not os.path.exists(allatom_filename):
         print("Skipping, %s not found" % allatom_filename)
         return
 
     trj_allatom = HDF5TrajectoryFile(allatom_filename, mode='r')
-    
-    print('all-atom trajectory %s has %d frames' % (allatom_filename, len(trj_allatom))) 
+
+    print('all-atom trajectory %s has %d frames' % (allatom_filename, len(trj_allatom)))
     if len(trj_allatom) < min_num_frames:
         print("Must have at least %d frames in %s to proceed!" % (min_num_frames, allatom_filename))
         del trj_allatom
@@ -120,17 +120,17 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
 
     filenames_allatom = getattr(trj_allatom.root, key)
     filenames_protein = getattr(trj_protein._handle.root, key)  # Hacky workaround of MDTraj bug #588
-    
+
     n_files_allatom = len(filenames_allatom)
     n_files_protein = len(filenames_protein)
     print("Found %d,%d filenames and %d,%d frames in %s and %s, respectively." % (n_files_allatom, n_files_protein, n_frames_allatom, n_frames_protein, allatom_filename, protein_filename))
-    
+
     if n_frames_protein > n_frames_allatom:
         raise(ValueError("Found more frames in protein trajectory (%d) than allatom trajectory (%d)" % (n_frames_protein, n_frames_allatom)))
-    
+
     if n_files_protein > n_files_allatom:
         raise(ValueError("Found more filenames in protein trajectory (%d) than allatom trajectory (%d)" % (n_files_protein, n_files_allatom)))
-    
+
     if n_frames_protein == n_frames_allatom or n_files_allatom == n_files_protein:
         if not (n_frames_protein == n_frames_allatom and n_files_allatom == n_files_protein):
             raise(ValueError("The trajectories must match in BOTH n_frames and n_filenames or NEITHER."))
@@ -148,7 +148,7 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
 
 def concatenate_core17(path, top, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
-    
+
     Parameters
     ----------
     path : str
@@ -157,7 +157,7 @@ def concatenate_core17(path, top, output_filename):
         Topology for system
     output_filename : str
         Filename of output HDF5 file to generate.
-    
+
     Notes
     -----
     We use HDF5 because it provides an easy way to store the metadata associated
@@ -166,12 +166,12 @@ def concatenate_core17(path, top, output_filename):
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
     filenames = sorted(filenames, key=keynat)
-    
+
     if len(filenames) <= 0:
         return
-    
+
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
-    
+
     try:
         trj_file._create_earray(where='/', name='processed_filenames',atom=trj_file.tables.StringAtom(1024), shape=(0,))
         trj_file.topology = top.topology
@@ -190,13 +190,13 @@ def concatenate_core17(path, top, output_filename):
 
             for frame in trj:
                 trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
-            
+
             trj_file._handle.root.processed_filenames.append([filename])
 
 def concatenate_core17_filenames(path, top_filename, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
     This version accepts only filenames and paths.
-    
+
     Parameters
     ----------
     path : str
@@ -205,7 +205,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
         Filepath to read Topology for system
     output_filename : str
         Filename of output HDF5 file to generate.
-    
+
     Notes
     -----
     We use HDF5 because it provides an easy way to store the metadata associated
@@ -221,19 +221,19 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
     filenames = sorted(filenames, key=keynat)
-    
+
     if len(filenames) <= 0:
         del top
         return
-    
+
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
-    
+
     try:
         trj_file._create_earray(where='/', name='processed_filenames',atom=trj_file.tables.StringAtom(1024), shape=(0,))
         trj_file.topology = top.topology
     except trj_file.tables.NodeError:
         pass
-                
+
     try:
         for filename in filenames:
             if six.b(filename) in trj_file._handle.root.processed_filenames:  # On Py3, the pytables list of filenames has type byte (e.g. b"hey"), so we need to deal with this via six.
@@ -247,7 +247,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
 
                 for frame in trj:
                     trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
-            
+
                 trj_file._handle.root.processed_filenames.append([filename])
 
                 # Clean up.
@@ -255,13 +255,13 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
 
     except RuntimeError:
         print("Cannot munge RUN%d CLONE%d due to damaged XTC." % (run, clone))
-    
+
     # Clean up.
     del top, trj_file
-                
+
 def concatenate_ocore(path, top, output_filename):
     """Concatenate XTC files created by Siegetank OCore.
-    
+
     Parameters
     ----------
     path : str
@@ -271,7 +271,7 @@ def concatenate_ocore(path, top, output_filename):
         Topology for system
     output_filename : str
         Filename of output HDF5 file to generate.
-    
+
     Notes
     -----
     We use HDF5 because it provides an easy way to store the metadata associated
@@ -279,18 +279,18 @@ def concatenate_ocore(path, top, output_filename):
     """
     sorted_folders = sorted(os.listdir(path), key=lambda value: int(value))
     sorted_folders = [os.path.join(path, folder) for folder in sorted_folders]
-    
+
     if len(sorted_folders) <= 0:
         return
-    
+
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
-    
+
     try:
         trj_file._create_earray(where='/', name='processed_folders',atom=trj_file.tables.StringAtom(1024), shape=(0,))
         trj_file.topology = top.topology
     except trj_file.tables.NodeError:
         pass
-    
+
     for folder in sorted_folders:
         if six.b(folder) in trj_file._handle.root.processed_folders:  # On Py3, the pytables list of filenames has type byte (e.g. b"hey"), so we need to deal with this via six.
             print("Already processed %s" % folder)
@@ -298,9 +298,8 @@ def concatenate_ocore(path, top, output_filename):
         print("Processing %s" % folder)
         xtc_filename = os.path.join(folder, "frames.xtc")
         trj = md.load(xtc_filename, top=top)
-        
+
         for frame in trj:
             trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
-        
+
         trj_file._handle.root.processed_folders.append([folder])
-            
