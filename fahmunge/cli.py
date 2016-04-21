@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print(fahmunge.version)
+        print(fahmunge.__version__)
         sys.exit(0)
 
     # Check arguments

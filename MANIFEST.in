@@ -1,1 +1,3 @@
 graft FAHMunge
+include versioneer.py
+include fahmunge/_version.py
