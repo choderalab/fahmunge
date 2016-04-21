@@ -36,28 +36,7 @@ import mdtraj as md
 import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
-
-def keynat(string):
-    '''A natural sort helper function for sort() and sorted()
-    without using regular expression.
-
-    >>> items = ('Z', 'a', '10', '1', '9')
-    >>> sorted(items)
-    ['1', '10', '9', 'Z', 'a']
-    >>> sorted(items, key=keynat)
-    ['1', '9', '10', 'Z', 'a']
-    '''
-    r = []
-    for c in string:
-        try:
-            c = int(c)
-            try:
-                r[-1] = r[-1] * 10 + c
-            except:
-                r.append(c)
-        except:
-            r.append(c)
-    return r
+from natsort import natsorted
 
 ##############################################################################
 # globals
@@ -165,7 +144,7 @@ def concatenate_core17(path, top, output_filename):
     """
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
-    filenames = sorted(filenames, key=keynat)
+    filenames = natsorted(filenames)
 
     if len(filenames) <= 0:
         return
@@ -220,7 +199,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     # Glob file paths.
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
-    filenames = sorted(filenames, key=keynat)
+    filenames = natsorted(filenames)
 
     if len(filenames) <= 0:
         del top
