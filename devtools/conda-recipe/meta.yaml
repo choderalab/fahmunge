@@ -39,11 +39,13 @@ test:
   commands:
     - nosetests fahmunge --nocapture --verbosity=2 --with-doctest --with-timer
     - munge-fah-data --help
+    - munge-fah-data --version
     # Test on some data
     - git clone https://github.com/choderalab/fahmunge-testdata.git
     - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged --maxits 1
     # TODO: Test to make sure expected output is found
-    - ls -ltr munged
+    - ls -ltr munged/all-atoms/10507
+    - ls -ltr munged/no-solvent/10507
 
 about:
   home: https://github.com/choderalab/fahmunge

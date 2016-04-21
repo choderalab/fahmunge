@@ -29,7 +29,13 @@ def main():
         help='Perform specified number of iterations and exist (default: no limit, process indefinitely)')
     parser.add_argument('-s', '--sleeptime', metavar='SLEEPTIME', dest='sleep_time', action='store', type=int, default=3600,
         help='Sleep for specified time (in seconds) between iterations (default: 3600)')
+    parser.add_argument('--version', action='store_true', default=False,
+        help='Print version information and exit')
     args = parser.parse_args()
+
+    if args.version:
+        print(fahmunge.version)
+        sys.exit(0)
 
     # Check arguments
     if args.projectfile == None:

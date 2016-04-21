@@ -2,6 +2,7 @@
 """
 
 from __future__ import print_function
+
 DOCLINES = __doc__.split("\n")
 
 import os
@@ -9,20 +10,13 @@ import sys
 import shutil
 import tempfile
 import subprocess
+import versioneer
 from distutils.ccompiler import new_compiler
+
 try:
     from setuptools import setup, Extension
 except ImportError:
     from distutils.core import setup, Extension
-
-
-
-##########################
-VERSION = "0.2.0"
-ISRELEASED = False
-__version__ = VERSION
-##########################
-
 
 CLASSIFIERS = """\
 Development Status :: 3 - Alpha
@@ -120,14 +114,41 @@ if not release:
 
 setup_kwargs = {}
 
-write_version_py()
+from distutils.command.clean import clean as Clean
+class CleanCommand(Clean):
+    """python setup.py clean
+    """
+    # lightly adapted from scikit-learn package
+    # adapted again from parmed
+    description = "Remove build artifacts from the source tree"
+
+    def _clean(self, folder):
+        for dirpath, dirnames, filenames in os.walk(folder):
+            for filename in filenames:
+                if (filename.endswith('.so') or filename.endswith('.pyd')
+                        or filename.endswith('.dll')
+                        or filename.endswith('.pyc')):
+                    os.unlink(os.path.join(dirpath, filename))
+            for dirname in dirnames:
+                if dirname == '__pycache__':
+                    shutil.rmtree(os.path.join(dirpath, dirname))
+
+    def run(self):
+        Clean.run(self)
+        if os.path.exists('build'):
+            shutil.rmtree('build')
+        self._clean('fahmunge')
+        self._clean('test')
+cmdclass = dict(clean=CleanCommand)
+cmdclass.update(versioneer.get_cmdclass())
+
 setup(name='fahmunge',
       author='Kyle A. Beauchamp',
       author_email='kyleabeauchamp@gmail.com',
       zip_safe=False,
       description=DOCLINES[0],
       long_description="\n".join(DOCLINES[2:]),
-      version=__version__,
+      version=versioneer.get_version(),
       license='LGPLv2.1+',
       download_url = "https://github.com/FoldingAtHome/FAHMunge/releases/latest",
       platforms=['Linux'],
