@@ -64,6 +64,9 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
         Skip if below this number.
 
     """
+    # Check integrity of trajectory if it exists.
+    delete_trajectory_if_broken(allatom_filename)
+
     if not os.path.exists(allatom_filename):
         print("Skipping, %s not found" % allatom_filename)
         return
@@ -83,6 +86,10 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
     else:
         raise(ValueError("Can't find processed files in %s" % allatom_filename))
 
+    # Check integrity of trajectory if it exists.
+    delete_trajectory_if_broken(protein_filename)
+
+    # Open the stripped trajectory.
     trj_protein = HDF5TrajectoryFile(protein_filename, mode='a')
 
     try:
@@ -172,6 +179,32 @@ def concatenate_core17(path, top, output_filename):
 
             trj_file._handle.root.processed_filenames.append([filename])
 
+def delete_trajectory_if_broken(filename, verbose=True):
+    """
+    Check the integrity of an MDTraj trajectory, deleting it if it is broken.
+
+    Parameters
+    ----------
+    filename : str
+       The trajectory filename.
+    verbose : bool, optional, default=True
+       If True, write some logging messages if broken trajectories are detected.
+
+    """
+    if os.path.exists(filename):
+        try:
+            trj = md.open(filename)
+        except Exception as e:
+            msg = "The integrity of trajectory file '%s' was compromised; deleting so that it will be regenerated.\n"
+            msg += "\n"
+            msg += str(e)
+            if verbose:
+                print(msg)
+            os.path.unlink(filename)
+
+        # Clean up.
+        del trj
+
 def concatenate_core17_filenames(path, top_filename, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
     This version accepts only filenames and paths.
@@ -196,15 +229,20 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     # Open topology file.
     top = md.load(top_filename % vars())
 
-    # Glob file paths.
+    # Glob file paths and return result files in sequential order.
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
     filenames = natsorted(filenames)
 
+    # If no result files are present, return.
     if len(filenames) <= 0:
         del top
         return
 
+    # Check integrity of trajectory if it exists.
+    delete_trajectory_if_broken(output_filename)
+
+    # Open trajectory for appending.
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
 
     try:
