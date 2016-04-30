@@ -49,6 +49,8 @@ The third line shows how to use a different PDB for each RUN.
 `%(run)d` is substituted by the run number via `filename % vars()` in Python, which allows run numbers or other local Python variables to be substituted.
 Substitution is only performed on a per-run basis, not per-clone.
 
+The projects CSV file will undergo minimal validation automatically to make sure all data and file paths can be found.
+
 ##### Advanced Usage
 
 More advanced usage allows additional arguments to be specified:
@@ -57,13 +59,14 @@ More advanced usage allows additional arguments to be specified:
 * `--verbose` will produce verbose output
 * `--maxits <MAXITS>` will cause the munging pipeline to run for the specified number of iterations and then exit. This can be useful for debugging. Without specifying this option, munging will run indefinitely.
 * `--sleeptime <SLEEPTIME>` will cause munging to sleep for the specified number of seconds if no work was done in this iteration (default:3600).
+* `--validate` will validate the choice of `topology_selection` MDTraj DSL topology selection queries to make sure they are valid; note that this may take a significant amount of time, so is optional behavior
 
 #### Usage on `choderalab` Folding@home servers
 
 1.  Login to work server using the usual FAH login
 2.  Check if script is running (`screen -r -d`).  If True, stop here.
 3.  Start a screen session
-4.  Run with: `munge-fah-data --projects /data/choderalab/fah/projects.csv --outpath /data/choderalab/fah/munged-data --time 3600 --nprocesses 16`
+4.  Run with: `munge-fah-data --projects /data/choderalab/fah/projects.csv --outpath /data/choderalab/fah/munged-data --time 600 --nprocesses 16`
 5.  To stop, control c when the script is in the "sleep" phase
 
 #### Single vs. multi process
