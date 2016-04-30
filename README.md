@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/fahmunge)
+[![Anaconda Cloud Badge](https://anaconda.org/omnia/fahmunge/badges/version.svg)](https://anaconda.org/omnia/fahmunge)
+
 ## FAHMunge
 
 A tool to automate processing of Folding@home data to produce [mdtraj](http://mdtraj.org/)-compatible trajectory sets.
