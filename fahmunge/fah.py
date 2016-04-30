@@ -28,7 +28,7 @@ Code for merging and munging trajectories from FAH datasets.
 ##############################################################################
 
 from __future__ import print_function, division
-import os
+import os, os.path
 import glob
 import tarfile
 from mdtraj.formats.hdf5 import HDF5TrajectoryFile
@@ -224,7 +224,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     with which files have already been processed.
     """
 
-    print(output_filename)
+    print('Concatenating XTC files from %s into %s' % (path, output_filename))
 
     # Open topology file.
     top = md.load(top_filename % vars())
@@ -257,7 +257,7 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
                 print("Already processed %s" % filename)
                 continue
             with enter_temp_directory():
-                print("Processing %s" % filename)
+                print("   appending %s" % filename)
                 archive = tarfile.open(filename, mode='r:bz2')
                 archive.extract("positions.xtc")
                 trj = md.load("positions.xtc", top=top)

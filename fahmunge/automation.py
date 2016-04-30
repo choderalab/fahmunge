@@ -57,6 +57,31 @@ def strip_water_wrapper(args):
     fah.strip_water(in_filename, protein_filename, topology, min_num_frames=min_num_frames)
     del topology
 
+def create_nosolvent_pdb(in_filename, pdb_filename, topology_selection):
+    """Create a PDB file stripped of solvent coordinates.
+
+    Parameters
+    ----------
+    in_filename : str
+       HDF5 FAH trajectory (e.g. runX-cloneY.h5)
+    pdb_filenmae : str
+       PDB filename to write
+    topology_selection : str
+       MDTraj DSL topology selection syntax
+       e.g. 'not (water or resname NA or resname CL)'
+
+    TODO
+    ----
+    * If HDF5 file is corrupted, emit a warning and delete the HDF5 file so it can be regenerated.
+
+    """
+    traj = md.load(in_filename)
+    t = traj[0]
+    topology = t.top.select(topology_selection)
+    no_solvent_t = t.atom_slice(topology)
+    no_solvent_t.save(pdb_filename)
+    del t, topology, no_solvent_t
+
 def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, nprocesses=None, maxtime=None):
     """Strip the water for a set of trajectories.
 
@@ -85,25 +110,26 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
         args = (in_filename, protein_filename, min_num_frames, topology_selection)
         work.append(args)
+
         # create no-solvent pdbs for all RUNs. Relies on trajectories having
         # runX-cloneY.h5 filename format
         pdb_name = os.path.basename(in_filename)
         pdb_name = pdb_name[:pdb_name.index('-')] + '.pdb'
         pdb_filename = os.path.join(output_path, pdb_name)
         if not os.path.exists(pdb_filename):
-            t = md.load(in_filename)[0]
-            topology = t.top.select(topology_selection)
-            no_solvent_t = t.atom_slice(topology)
-            no_solvent_t.save(pdb_filename)
-            del t, topology, no_solvent_t
+            print('      opening %s' % in_filename)
+            create_nosolvent_pdb(in_filename, pdb_filename, topology_selection)
+
+    print('%s : %d trajectories to process' % (output_path, len(work)))
+
     # Do the work in parallel or serial
     if nprocesses != None:
         print(nprocesses)
 
         try:
-            print("Creating thread pool...")
+            #print("Creating thread pool...")
             pool = Pool(nprocesses, set_signals)
-            print("Starting asynchronous map operations...")
+            #print("Starting asynchronous map operations...")
             job = pool.map_async(strip_water_wrapper, work)
             while(not job.ready()):
                 try:
@@ -119,7 +145,7 @@ def strip_water(path_to_merged_trajectories, output_path, min_num_frames=1, npro
             pool.close()
             pool.join()
 
-        print('All trajectories merged.')
+        print('%s : All trajectories merged.' % output_path)
         #output = job.get()
         #print(output)
     else:
@@ -157,9 +183,11 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
             args = (path, top_filename % vars(), out_filename)
             work.append(args)
 
+    print('merging %s : work has %d RUN/CLONE pairs to process' % (input_data_path, len(work)))
+
     # Do the work in parallel or serial
     if nprocesses != None:
-        print(nprocesses)
+        print('Using %d threads' % nprocesses)
 
         try:
             print("Creating thread pool...")
