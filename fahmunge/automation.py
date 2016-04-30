@@ -49,11 +49,11 @@ def get_num_runs_clones(path):
 
     return n_runs, n_clones
 
-def concatenate_core17_wrapper(args):
+def concatenate_core17_wrapper(kwargs):
     """
     Wrapper for using fah.concatenate_core17 in map.
     """
-    fah.concatenate_core17(*args)
+    fah.concatenate_core17(**kwargs)
 
 def strip_water_wrapper(args):
     """
@@ -115,6 +115,8 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
         If not None, use multiprocessing to parallelize up to the specified number of workers.
 
     """
+    MAXPACKETS = 10 # maximum number of packets to process per iteration
+
     # Build a list of work to parallelize
     n_runs, n_clones = get_num_runs_clones(input_data_path)
     work = collections.deque()
@@ -122,8 +124,13 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
         for clone in range(n_clones):
             path = os.path.join(input_data_path, "RUN%d" % run, "CLONE%d" % clone)
             out_filename = os.path.join(output_data_path, "run%d-clone%d.h5" % (run, clone))
-            args = (path, top_filename % vars(), out_filename)
-            work.append(args)
+            kwargs = {'path' : path, 'top_filename' : top_filename % vars(), 'output_filename' : out_filename}
+            # Set maxpackets and maxtime
+            kwargs['maxpackets'] = MAXPACKETS
+            if maxtime:
+                kwargs['maxtime'] = maxtime
+            # Append work
+            work.append(kwargs)
     print('merging %s : work has %d RUN/CLONE pairs to process' % (input_data_path, len(work)))
 
     print('Using %d threads' % nprocesses)

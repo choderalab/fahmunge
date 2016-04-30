@@ -37,6 +37,7 @@ import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
 from natsort import natsorted
+import time
 
 ##############################################################################
 # globals
@@ -158,7 +159,7 @@ def delete_trajectory_if_broken(filename, verbose=True):
         # Clean up.
         del trj
 
-def concatenate_core17(path, top_filename, output_filename):
+def concatenate_core17(path, top_filename, output_filename, maxtime=None, maxpackets=None):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
     This version accepts only filenames and paths.
 
@@ -170,6 +171,10 @@ def concatenate_core17(path, top_filename, output_filename):
         Filepath to read Topology for system
     output_filename : str
         Filename of output HDF5 file to generate.
+    maxpackets : int, optional, default=None
+        If specified, will stop processing after `maxpackets` results packets have been processed
+    maxtime : int, optional, default=None
+        If specified, will stop processing after `maxtime` seconds have passed.
 
     Notes
     -----
@@ -207,6 +212,8 @@ def concatenate_core17(path, top_filename, output_filename):
         # Object already exists; skip ahead.
         pass
 
+    result_packets_processed = 0
+    initial_time = time.time()
     try:
         for filename in filenames:
             # Check that we haven't violated our filename length assumption
@@ -236,6 +243,15 @@ def concatenate_core17(path, top_filename, output_filename):
 
                 # Flush data
                 trj_file.flush()
+
+            # Track statistics on processed packets
+            elapsed_time = time.time() - initial_time
+            result_packets_processed += 1
+
+            # Stop if we have processed the requested number of results packets.
+            if maxpackets and (result_packets_processed >= maxpackets):
+                print('   Reached the limit of %d packets to process.' % maxpackets)
+                break
 
     except RuntimeError:
         print("Cannot munge %s due to damaged XTC %s or mismatch with topology file." % (path, filename))
