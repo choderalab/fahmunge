@@ -148,7 +148,7 @@ def delete_trajectory_if_broken(filename, verbose=True):
         try:
             trj = md.open(filename)
         except Exception as e:
-            msg = "The integrity of trajectory file '%s' was compromised; deleting so that it will be regenerated.\n"
+            msg = "The integrity of trajectory file '%s' was compromised; deleting so that it will be regenerated.\n" % filename
             msg += "\n"
             msg += str(e)
             if verbose:

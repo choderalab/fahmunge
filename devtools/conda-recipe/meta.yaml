@@ -40,23 +40,28 @@ test:
     - nosetests fahmunge --nocapture --verbosity=2 --with-doctest --with-timer
     - munge-fah-data --help
     - munge-fah-data --version
-    # Test on some data
+    # Get some test data
     - git clone https://github.com/choderalab/fahmunge-testdata.git
     - cd fahmunge-testdata
+    # Testing
     - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
     # TODO: Test to make sure expected output is found
     - ls -ltr munged/all-atoms/11507
     - ls -ltr munged/no-solvent/11507
     # Test additional processing runs (shouldn't actually do anything)
+    - echo "Testing additional processing iterations"
     - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
     - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --sleeptime 1 --debug
     # Test running with time limit for processing
+    - echo "Testing with time limit"
     - rm -rf munged
     - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --time 10 --sleeptime 0 --debug
     # Test parallel
+    - echo "Testing parallel processing"
     - rm -rf munged
     - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --nprocesses 2 --debug
     # Corrupt a file
+    - echo "Corrupting a file"
     - rm -f munged/no-solvent/11507/run1-clone1.h5; touch munged/no-solvent/11507/run1-clone1.h5
     - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
 
