@@ -17,6 +17,10 @@ The easiest way to install `fahmunge` and its dependencies is via `conda` (prefe
 ```bash
 conda install --yes -c omnia fahmunge
 ```
+**NOTE: Only the `fahmunge-dev` package is currently built:
+```bash
+conda install --yes -c omnia fahmunge-dev
+```
 
 #### Usage
 
@@ -24,7 +28,7 @@ conda install --yes -c omnia fahmunge
 
 Basic usage simply specifies a project CSV file and an output path for the munged data:
 ```bash
-munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged-data
+munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged3
 ```
 The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
 ```
@@ -43,7 +47,7 @@ project,location,pdb,topology_selection
 The top two lines are examples of using a single PDB for all RUNs in the project.
 The third line shows how to use a different PDB for each RUN.
 `%(run)d` is substituted by the run number via `filename % vars()` in Python, which allows run numbers or other local Python variables to be substituted.
-This is done on a per-run basis, not per-clone.
+Substitution is only performed on a per-run basis, not per-clone.
 
 ##### Advanced Usage
 

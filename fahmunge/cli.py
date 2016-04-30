@@ -55,24 +55,33 @@ def main():
     projects = pd.read_csv(args.projectfile, index_col=0)
 
     # Check that all locations and PDB files exist, raising an exception if they do not (indicating misconfiguration)
+    # TODO: Parallelize validation by entry?
     print('Validating contents of project CSV file...')
     for (project, location, pdb, topology_selection) in projects.itertuples():
         # Check project path exists.
         if not os.path.exists(location):
             raise Exception("Project %s: Cannot find data path '%s'. Check that you specified the correct location." % (project, location))
         # Check PDB file(s) exist
+        # TODO: Check atom counts match?
+        # TODO: Generalize with a generator for iterating over all RUN/CLONEs?
         n_runs, n_clones = fahmunge.automation.get_num_runs_clones(location)
         print("Project %s: %d RUNs %d CLONEs found; topology_selection = '%s'" % (project, n_runs, n_clones, topology_selection))
-        for run in range(n_runs):
-            for clone in range(n_clones):
+        if '%' in pdb:
+            # perform filename substitution on all RUNs
+            pdb_filenames_to_check = list()
+            for run in range(n_runs):
                 pdb_filename = pdb % vars()
-                if not os.path.exists(pdb_filename):
-                    raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
-                # Check toplogy selection is valid.
-                traj = md.load(pdb_filename)
-                topology = traj.top.select(topology_selection)
-                del traj, topology
-
+                pdb_filenames_to_check.append(pdb_filename)
+        else:
+            pdb_filenames_to_check = [ pdb ] # just one filename
+        for pdb_filename in pdb_filenames_to_check:
+            pdb_filename = pdb % vars()
+            if not os.path.exists(pdb_filename):
+                raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
+            # Check toplogy selection is valid.
+            traj = md.load(pdb_filename)
+            topology = traj.top.select(topology_selection)
+            del traj, topology
     print('All specified paths and PDB files found.')
     print('')
 
