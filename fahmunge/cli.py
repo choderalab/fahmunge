@@ -17,6 +17,8 @@ def main():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-p', '--projects', metavar='PROJECTFILE', dest='projectfile', action='store', type=str, default=None,
         help='CSV file containing (project,filepath,pdbfile) tuples')
+    parser.add_argument('--validate', dest='validate_topology_selection', action='store_true', default=False,
+        help='Validate topology_selection in CSV projects file is valid')
     parser.add_argument('-o', '--outpath', metavar='OUTPATH', dest='output_path', action='store', type=str, default=None,
         help='Output pathname for munged data')
     parser.add_argument('-n', '--nprocesses', metavar='NPROCESSES', dest='nprocesses', action='store', type=int, default=1,
@@ -78,10 +80,16 @@ def main():
             pdb_filename = pdb % vars()
             if not os.path.exists(pdb_filename):
                 raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
-            # Check toplogy selection is valid.
-            traj = md.load(pdb_filename)
-            topology = traj.top.select(topology_selection)
-            del traj, topology
+            if args.validate_topology_selection:
+                # Check toplogy selection is valid.
+                # TODO: Report on original and stripped atom numbers
+                traj = md.load(pdb_filename)
+                original_topology = traj.top
+                indices = original_topology.select(topology_selection)
+                print("  %s : %d atoms; selection '%s' has %d atoms" % (pdb_filename, original_topology.n_atoms, topology_selection, len(indices)))
+                if len(indices)==0:
+                    raise Exception("topology_selection '%s' matches zero atoms!" % topology_selection)
+                del traj, original_topology, indices
     print('All specified paths and PDB files found.')
     print('')
 

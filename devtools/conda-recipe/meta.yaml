@@ -44,7 +44,7 @@ test:
     - git clone https://github.com/choderalab/fahmunge-testdata.git
     - cd fahmunge-testdata
     # Testing
-    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug --validate
     # TODO: Test to make sure expected output is found
     - ls -ltr munged/all-atoms/11507
     - ls -ltr munged/no-solvent/11507
