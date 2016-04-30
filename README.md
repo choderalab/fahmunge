@@ -27,13 +27,14 @@ The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
 ```
 /data/choderalab/fah/Software/FAHMunge/projects.csv
 ```
-This file specifies the project number, the location of the FAH data, and a reference PDB file (or files) to be used for munging.
+This file specifies the project number, the location of the FAH data, a reference PDB file (or files) to be used for munging, and the MDTraj DSL topology selection to be used for extracting solute coordinates of interest.
+
 For example:
 ```
-project,location,pdb
-"10491","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10491/","/home/server.140.163.4.245/server2/projects/GPU/p10491/topol-renumbered-explicit.pdb"
-"10492","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10492/topol-renumbered-explicit.pdb"
-"10495","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10495/MTOR_HUMAN_D0/RUN%(run)d/system.pdb"
+project,location,pdb,topology_selection
+"10491","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10491/","/home/server.140.163.4.245/server2/projects/GPU/p10491/topol-renumbered-explicit.pdb","not water"
+"10492","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10492/topol-renumbered-explicit.pdb","not (water or resname NA or resname CL)"
+"10495","/home/server.140.163.4.245/server2/data/SVR2359493877/PROJ10492/","/home/server.140.163.4.245/server2/projects/GPU/p10495/MTOR_HUMAN_D0/RUN%(run)d/system.pdb","not (water or resname NA or resname CL)"
 ```
 `pdb` points the pipeline toward a PDB file to look at for numbering atoms in the munged data.
 The top two lines are examples of using a single PDB for all RUNs in the project.

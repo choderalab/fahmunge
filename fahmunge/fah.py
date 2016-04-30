@@ -132,53 +132,6 @@ def strip_water(allatom_filename, protein_filename, protein_atom_indices, min_nu
     filenames_protein.append(filenames_allatom[n_files_protein:])
     del trj_allatom, trj_protein
 
-def concatenate_core17(path, top, output_filename):
-    """Concatenate tar bzipped XTC files created by Folding@Home Core17.
-
-    Parameters
-    ----------
-    path : str
-        Path to directory containing "results-*.tar.bz2".  E.g. a single CLONE directory.
-    top : mdtraj.Topology
-        Topology for system
-    output_filename : str
-        Filename of output HDF5 file to generate.
-
-    Notes
-    -----
-    We use HDF5 because it provides an easy way to store the metadata associated
-    with which files have already been processed.
-    """
-    glob_input = os.path.join(path, "results-*.tar.bz2")
-    filenames = glob.glob(glob_input)
-    filenames = natsorted(filenames)
-
-    if len(filenames) <= 0:
-        return
-
-    trj_file = HDF5TrajectoryFile(output_filename, mode='a')
-
-    try:
-        trj_file._create_earray(where='/', name='processed_filenames',atom=trj_file.tables.StringAtom(1024), shape=(0,))
-        trj_file.topology = top.topology
-    except trj_file.tables.NodeError:
-        pass
-
-    for filename in filenames:
-        if six.b(filename) in trj_file._handle.root.processed_filenames:  # On Py3, the pytables list of filenames has type byte (e.g. b"hey"), so we need to deal with this via six.
-            print("Already processed %s" % filename)
-            continue
-        with enter_temp_directory():
-            print("Processing %s" % filename)
-            archive = tarfile.open(filename, mode='r:bz2')
-            archive.extract("positions.xtc")
-            trj = md.load("positions.xtc", top=top)
-
-            for frame in trj:
-                trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
-
-            trj_file._handle.root.processed_filenames.append([filename])
-
 def delete_trajectory_if_broken(filename, verbose=True):
     """
     Check the integrity of an MDTraj trajectory, deleting it if it is broken.
@@ -205,7 +158,7 @@ def delete_trajectory_if_broken(filename, verbose=True):
         # Clean up.
         del trj
 
-def concatenate_core17_filenames(path, top_filename, output_filename):
+def concatenate_core17(path, top_filename, output_filename):
     """Concatenate tar bzipped XTC files created by Folding@Home Core17.
     This version accepts only filenames and paths.
 
@@ -224,8 +177,6 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     with which files have already been processed.
     """
 
-    print('Concatenating XTC files from %s into %s' % (path, output_filename))
-
     # Open topology file.
     top = md.load(top_filename % vars())
 
@@ -233,6 +184,8 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     glob_input = os.path.join(path, "results-*.tar.bz2")
     filenames = glob.glob(glob_input)
     filenames = natsorted(filenames)
+
+    print("Concatenating XTC files from '%s' into '%s' [%d results packets found]" % (path, output_filename, len(filenames)))
 
     # If no result files are present, return.
     if len(filenames) <= 0:
@@ -245,38 +198,53 @@ def concatenate_core17_filenames(path, top_filename, output_filename):
     # Open trajectory for appending.
     trj_file = HDF5TrajectoryFile(output_filename, mode='a')
 
+    MAX_FILEPATH_LENGTH = 1024 # Is this large enough?
     try:
-        trj_file._create_earray(where='/', name='processed_filenames',atom=trj_file.tables.StringAtom(1024), shape=(0,))
+        # TODO: Store MD5 hashes instead of filenames?
+        trj_file._create_earray(where='/', name='processed_filenames',atom=trj_file.tables.StringAtom(MAX_FILEPATH_LENGTH), shape=(0,))
         trj_file.topology = top.topology
     except trj_file.tables.NodeError:
+        # Object already exists; skip ahead.
         pass
 
     try:
         for filename in filenames:
+            # Check that we haven't violated our filename length assumption
+            if len(filename) > MAX_FILEPATH_LENGTH:
+                msg = "Filename is longer than hard-coded MAX_FILEPATH_LENGTH limit (%d > %d). Increase MAX_FILEPATH_LENGTH and rebuild." % (len(filename), MAX_FILEPATH_LENGTH)
+                print(msg)
+                raise Exception(msg)
+            # Check if we have already processed this file
             if six.b(filename) in trj_file._handle.root.processed_filenames:  # On Py3, the pytables list of filenames has type byte (e.g. b"hey"), so we need to deal with this via six.
                 print("Already processed %s" % filename)
                 continue
+            # Extract frames from trajectory in a temporary directory
+            absfilename = os.path.abspath(filename)
             with enter_temp_directory():
-                print("   appending %s" % filename)
-                archive = tarfile.open(filename, mode='r:bz2')
+                # Extract frames
+                archive = tarfile.open(absfilename, mode='r:bz2')
                 archive.extract("positions.xtc")
                 trj = md.load("positions.xtc", top=top)
-
+                print("   appending %d frames from '%s' to '%s'" % (trj.n_frames, filename, output_filename))
                 for frame in trj:
                     trj_file.write(coordinates=frame.xyz, cell_lengths=frame.unitcell_lengths, cell_angles=frame.unitcell_angles, time=frame.time)
-
-                trj_file._handle.root.processed_filenames.append([filename])
-
-                # Clean up.
+                os.unlink("positions.xtc")
                 del archive, trj
 
+                # Append list of processed files
+                trj_file._handle.root.processed_filenames.append([filename])
+
+                # Flush data
+                trj_file.flush()
+
     except RuntimeError:
-        print("Cannot munge RUN%d CLONE%d due to damaged XTC." % (run, clone))
+        print("Cannot munge %s due to damaged XTC %s or mismatch with topology file." % (path, filename))
 
     # Clean up.
+    trj_file.close()
     del top, trj_file
 
-def concatenate_ocore(path, top, output_filename):
+def concatenate_ocore(path, top_filename, output_filename):
     """Concatenate XTC files created by Siegetank OCore.
 
     Parameters
@@ -284,8 +252,8 @@ def concatenate_ocore(path, top, output_filename):
     path : str
         Path to stream directory containing frame directories /0, /1, /2
         etc.
-    top : mdtraj.Topology
-        Topology for system
+    top_filename : str
+        Filepath to read Topology for system
     output_filename : str
         Filename of output HDF5 file to generate.
 
@@ -294,6 +262,9 @@ def concatenate_ocore(path, top, output_filename):
     We use HDF5 because it provides an easy way to store the metadata associated
     with which files have already been processed.
     """
+    # Open topology file.
+    top = md.load(top_filename % vars())
+
     sorted_folders = sorted(os.listdir(path), key=lambda value: int(value))
     sorted_folders = [os.path.join(path, folder) for folder in sorted_folders]
 

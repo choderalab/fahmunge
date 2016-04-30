@@ -42,10 +42,23 @@ test:
     - munge-fah-data --version
     # Test on some data
     - git clone https://github.com/choderalab/fahmunge-testdata.git
-    - munge-fah-data --projects fahmunge-testdata/projects.csv --outpath munged --maxits 1
+    - cd fahmunge-testdata
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
     # TODO: Test to make sure expected output is found
     - ls -ltr munged/all-atoms/10507
     - ls -ltr munged/no-solvent/10507
+    # Test additional processing runs (shouldn't actually do anything)
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --sleeptime 1 --debug
+    # Test running with time limit for processing
+    - rm -rf munged
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --time 10 --sleeptime 0 --debug
+    # Test parallel
+    - rm -rf munged
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --nprocesses 2 --debug
+    # Corrupt a file
+    - rm -f munged/no-solvent/11507/run1-clone1.h5; touch munged/no-solvent/11507/run1-clone1.h5
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --debug
 
 about:
   home: https://github.com/choderalab/fahmunge
