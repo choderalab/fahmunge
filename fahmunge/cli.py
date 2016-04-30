@@ -29,8 +29,8 @@ def main():
         help='Process each project for no more than specified time (in seconds) before moving on to next project')
     parser.add_argument('-m', '--maxits', metavar='MAXITS', dest='maximum_iterations', action='store', type=int, default=None,
         help='Perform specified number of iterations and exist (default: no limit, process indefinitely)')
-    parser.add_argument('-s', '--sleeptime', metavar='SLEEPTIME', dest='sleep_time', action='store', type=int, default=60,
-        help='Sleep for specified time (in seconds) between iterations (default: 60)')
+    parser.add_argument('-s', '--sleeptime', metavar='SLEEPTIME', dest='sleep_time', action='store', type=int, default=0,
+        help='Sleep for specified time (in seconds) between iterations (default: 0)')
     parser.add_argument('-v', '--version', action='store_true', default=False,
         help='Print version information and exit')
     args = parser.parse_args()

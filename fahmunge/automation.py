@@ -115,7 +115,7 @@ def merge_fah_trajectories(input_data_path, output_data_path, top_filename, npro
         If not None, use multiprocessing to parallelize up to the specified number of workers.
 
     """
-    MAXPACKETS = 10 # maximum number of packets to process per iteration
+    MAXPACKETS = 1 # maximum number of packets to process per iteration
 
     # Build a list of work to parallelize
     n_runs, n_clones = get_num_runs_clones(input_data_path)
