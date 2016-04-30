@@ -28,7 +28,7 @@ conda install --yes -c omnia fahmunge-dev
 
 Basic usage simply specifies a project CSV file and an output path for the munged data:
 ```bash
-munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged3
+munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged3 --nprocesses 16
 ```
 The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
 ```
@@ -69,14 +69,6 @@ More advanced usage allows additional arguments to be specified:
 4.  Run with: `munge-fah-data --projects /data/choderalab/fah/projects.csv --outpath /data/choderalab/fah/munged-data --time 600 --nprocesses 16`
 5.  To stop, control c when the script is in the "sleep" phase
 
-#### Single vs. multi process
-
-**This section needs to be updated**
-
-There is also a multiprocessing version in the `scripts/` folder.  
-However, the scripts generate potentially large temporary files.  
-The single process version seems to put less strain on the `/tmp` filesystem, so we prefer that right now.
-
 #### How it works
 
 Overall Pipeline (Core17/18):
@@ -84,13 +76,6 @@ Overall Pipeline (Core17/18):
 1.  Extract XTC data from `bzip`s
 2.  Append all-atom coordinates and filenames to HDF5 file
 3.  Extract protein coordinates and filenames from the all-atom HDF5 file into a second HDF5 file
-
-General instructions:
-
-1.  Run FAH servers
-2.  Edit `scripts/munge_fah_data.py` to load your FAH data.
-3.  Run `scripts/munge_fah_data.py` in a screen session
-4.  rsync your stripped data to analysis machines periodically.  
 
 #### Efficiency considerations
 
@@ -105,10 +90,10 @@ Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal
 ```
 This is done via a `crontab`:
 ```
-04 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah1-rsync-no-solvent.log 2>&1
-39 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged/no-solvent /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah2-rsync-no-solvent.log 2>&1
-34 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged/all-atoms /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah1-rsync-all-atoms.log 2>&1
-50 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged/all-atoms /cbio/jclab/projects/fah/fah-data/munged >> $HOME/plfah2-rsync-all-atoms.log 2>&1
+04 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-no-solvent.log 2>&1
+39 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-no-solvent.log 2>&1
+34 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-all-atoms.log 2>&1
+50 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-all-atoms.log 2>&1
 ```
 To install this `crontab` as the `choderalab` user:
 ```bash
