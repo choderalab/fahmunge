@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/yank)
+[![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/fahmunge)
 [![Anaconda Cloud Badge](https://anaconda.org/omnia/fahmunge/badges/version.svg)](https://anaconda.org/omnia/fahmunge)
 
 ## FAHMunge
