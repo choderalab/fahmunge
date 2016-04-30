@@ -55,6 +55,7 @@ def main():
     projects = pd.read_csv(args.projectfile, index_col=0)
 
     # Check that all locations and PDB files exist, raising an exception if they do not (indicating misconfiguration)
+    # TODO: Parallelize validation by entry?
     print('Validating contents of project CSV file...')
     for (project, location, pdb, topology_selection) in projects.itertuples():
         # Check project path exists.
@@ -66,7 +67,11 @@ def main():
         n_runs, n_clones = fahmunge.automation.get_num_runs_clones(location)
         print("Project %s: %d RUNs %d CLONEs found; topology_selection = '%s'" % (project, n_runs, n_clones, topology_selection))
         if '%' in pdb:
-            pdb_filenames_to_check = [ pdb % vars() for run in range(n_runs) ] # perform filename substitution on all RUNs
+            # perform filename substitution on all RUNs
+            pdb_filenames_to_check = list()
+            for run in range(n_runs):
+                pdb_filename = pdb % vars()
+                pdb_filenames_to_check.append(pdb_filename)
         else:
             pdb_filenames_to_check = [ pdb ] # just one filename
         for pdb_filename in pdb_filenames_to_check:
