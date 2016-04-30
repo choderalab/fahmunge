@@ -17,6 +17,10 @@ The easiest way to install `fahmunge` and its dependencies is via `conda` (prefe
 ```bash
 conda install --yes -c omnia fahmunge
 ```
+**NOTE: Only the `fahmunge-dev` package is currently built:
+```bash
+conda install --yes -c omnia fahmunge-dev
+```
 
 #### Usage
 
