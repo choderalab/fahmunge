@@ -1,5 +1,5 @@
-![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/fahmunge)
-[![Binstar Badge](https://binstar.org/omnia/fahmunge/badges/version.svg)](https://binstar.org/omnia/fahmunge)
+[![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/yank)
+[![Anaconda Cloud Badge](https://anaconda.org/omnia/fahmunge/badges/version.svg)](https://anaconda.org/omnia/fahmunge)
 
 ## FAHMunge
 
