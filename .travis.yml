@@ -1,0 +1,33 @@
+language: c
+sudo: false
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+
+install:
+  - bash -x devtools/travis-ci/install.sh
+  - export PYTHONUNBUFFERED=true
+  - export PATH=$HOME/miniconda/bin:$PATH
+
+script:
+  - conda config --add channels $ORGNAME
+  - conda build devtools/conda-recipe
+  #- source activate _test
+  #- conda install --yes --quiet nose nose-timer
+  #- cd devtools && nosetests $PACKAGENAME --nocapture --verbosity=2 --with-doctest --with-timer && cd ..
+env:
+  matrix:
+    - python=2.7  CONDA_PY=27
+    - python=3.4  CONDA_PY=34
+    - python=3.5  CONDA_PY=35
+
+  global:
+    - ORGNAME="omnia" # the name of the organization
+    - PACKAGENAME="fahmunge" # the name of your package
+    # encrypted BINSTAR_TOKEN for push of dev package to binstar
+    - secure: "InunuUpGbu+tTw0z0bZC2Ddn+Xci99UYcr34Y9tis2qw9sewkYSoJ47ZklA3ld2cJP05tfZ2wn+fOM0q+hibCkicUaZTJPu4ejux+oN3cGwxSrrNUTYO6+8eXQlqY/0B64RYeX2hyP3pRYLlqzseqwmilL5lfiVvdyCkee9ixw0="
+
+after_success:
+  - echo "after_success"
+  - if [ "$TRAVIS_SECURE_ENV_VARS" == true ]; then source devtools/travis-ci/after_success.sh; fi
