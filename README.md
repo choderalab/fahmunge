@@ -11,6 +11,11 @@ A tool to automate processing of Folding@home data to produce [mdtraj](http://md
 * Steven Albanese
 * Rafal Wiewiora
 
+#### Supported FAH cores
+* 0x17 [OpenMM]
+* 0x18 [OpenMM]
+* 0x21 [OpenMM 6.3]
+
 #### Installation
 
 The easiest way to install `fahmunge` and its dependencies is via `conda` (preferably [`miniconda`](http://conda.pydata.org/miniconda.html)):
