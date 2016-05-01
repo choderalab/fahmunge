@@ -248,9 +248,8 @@ def concatenate_core17(path, top_filename, output_filename, maxtime=None, maxpac
             elapsed_time = time.time() - initial_time
             result_packets_processed += 1
 
-            # Stop if we have processed the requested number of results packets.
+            # Return if we have processed the requested number of results packets.
             if maxpackets and (result_packets_processed >= maxpackets):
-                print('   Reached the limit of %d packets to process.' % maxpackets)
                 break
 
     except RuntimeError:

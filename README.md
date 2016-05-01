@@ -11,15 +11,16 @@ A tool to automate processing of Folding@home data to produce [mdtraj](http://md
 * Steven Albanese
 * Rafal Wiewiora
 
+#### Supported FAH cores
+* 0x17 [OpenMM]
+* 0x18 [OpenMM]
+* 0x21 [OpenMM 6.3]
+
 #### Installation
 
 The easiest way to install `fahmunge` and its dependencies is via `conda` (preferably [`miniconda`](http://conda.pydata.org/miniconda.html)):
 ```bash
 conda install --yes -c omnia fahmunge
-```
-**NOTE: Only the `fahmunge-dev` package is currently built:
-```bash
-conda install --yes -c omnia fahmunge-dev
 ```
 
 #### Usage
@@ -54,7 +55,7 @@ The projects CSV file will undergo minimal validation automatically to make sure
 ##### Advanced Usage
 
 More advanced usage allows additional arguments to be specified:
-* `--nprocesses <NPROCESSES>` will parallelize munging by RUN using `multiprocessing` if `NPROCESSES > 1` is specified. (**NOTE: Parallel processing is still experimental and tends to occasionally corrupt munged trajectories---we are working on fixing this.**) By default, a serial code path is used with `NPROCESSES = 1`.
+* `--nprocesses <NPROCESSES>` will parallelize munging by RUN using `multiprocessing` if `NPROCESSES > 1` is specified.  By default, `NPROCESSES = 1`.
 * `--time <TIME_LIMIT>` specifies that munging should move on to another phase or project after the given time limit (in seconds) is reached, once it is safe to move on.  This is useful for ensuring that some munging occurs on all projects of interest every day.
 * `--verbose` will produce verbose output
 * `--maxits <MAXITS>` will cause the munging pipeline to run for the specified number of iterations and then exit. This can be useful for debugging. Without specifying this option, munging will run indefinitely.
@@ -90,10 +91,13 @@ Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal
 ```
 This is done via a `crontab`:
 ```
-04 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-no-solvent.log 2>&1
-39 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-no-solvent.log 2>&1
-34 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-all-atoms.log 2>&1
-50 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-all-atoms.log 2>&1
+# kill any rsyncs already in progress
+42 00 * * * skill rsync
+# munged3
+04 01 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged2/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync3-no-solvent.log 2>&1
+38 02 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged2/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync3-no-solvent.log 2>&1
+34 03 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged2/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync3-all-atoms.log 2>&1
+50 03 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged2/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync3-all-atoms.log 2>&1
 ```
 To install this `crontab` as the `choderalab` user:
 ```bash
@@ -105,8 +109,8 @@ crontab -l
 ```
 Transfers are logged in the `choderalab` account:
 ```
-plfah1-rsync-all-atoms.log
-plfah1-rsync-no-solvent.log
-plfah2-rsync-all-atoms.log
-plfah2-rsync-no-solvent.log
+plfah1-rsync3-all-atoms.log
+plfah1-rsync3-no-solvent.log
+plfah2-rsync3-all-atoms.log
+plfah2-rsync3-no-solvent.log
 ```
