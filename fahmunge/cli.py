@@ -105,7 +105,7 @@ def main():
 
     # Main processing loop
     iteration = 0
-    while((args.maximum_iterations==None) or (iteration < args.maximum_iterations)):
+    while((args.maximum_iterations == None) or (iteration < args.maximum_iterations)):
         for (project, location, pdb, topology_selection) in projects.itertuples():
 
             if args.verbose:
@@ -140,7 +140,7 @@ def main():
         iteration += 1
 
         # Exit now if specified number of iterations is reached
-        if (iteration >= args.maximum_iterations):
+        if (args.maximum_iterations and (iteration >= args.maximum_iterations)):
             return
 
         # Sleep
