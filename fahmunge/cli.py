@@ -40,11 +40,11 @@ def main():
         sys.exit(0)
 
     # Check arguments
-    if args.projectfile == None:
+    if args.projectfile is None:
         print('ERROR: projectfile must be specified\n\n')
         parser.print_help()
         sys.exit(1)
-    if args.output_path == None:
+    if args.output_path is None:
         print('ERROR: outpath must be specified\n\n')
         parser.print_help()
         sys.exit(1)
@@ -105,7 +105,7 @@ def main():
 
     # Main processing loop
     iteration = 0
-    while((args.maximum_iterations==None) or (iteration < args.maximum_iterations)):
+    while((args.maximum_iterations is None) or (iteration < args.maximum_iterations)):
         for (project, location, pdb, topology_selection) in projects.itertuples():
 
             if args.verbose:
@@ -130,7 +130,7 @@ def main():
 
         # Report progress.
         print('')
-        if (args.maximum_iterations == None):
+        if (args.maximum_iterations is None):
             print("Finished iteration %d, sleeping for %d seconds." % (iteration, args.sleep_time))
         else:
             print("Finished iteration %d / %d, sleeping for %d seconds." % (iteration, args.maximum_iterations, args.sleep_time))
@@ -140,7 +140,7 @@ def main():
         iteration += 1
 
         # Exit now if specified number of iterations is reached
-        if (iteration >= args.maximum_iterations):
+        if (args.maximum_iterations and (iteration >= args.maximum_iterations)):
             return
 
         # Sleep
