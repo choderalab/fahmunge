@@ -86,10 +86,13 @@ Munged `no-solvent` data is `rsync`ed nightly from `plfah1` and `plfah2` to `hal
 ```
 This is done via a `crontab`:
 ```
-04 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-no-solvent.log 2>&1
-39 01 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-no-solvent.log 2>&1
-34 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync-all-atoms.log 2>&1
-50 03 * * * rsync -av --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged3/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync-all-atoms.log 2>&1
+# kill any rsyncs already in progress
+42 00 * * * skill rsync
+# munged3
+04 01 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged2/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync3-no-solvent.log 2>&1
+38 02 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged2/no-solvent /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync3-no-solvent.log 2>&1
+34 03 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah1.mskcc.org:/data/choderalab/fah/munged2/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah1-rsync3-all-atoms.log 2>&1
+50 03 * * * rsync -av --append-verify --bwlimit=1000 --chmod=g-w,g+r,o-w,o+r server@plfah2.mskcc.org:/data/choderalab/fah/munged2/all-atoms /cbio/jclab/projects/fah/fah-data/munged3 >> $HOME/plfah2-rsync3-all-atoms.log 2>&1
 ```
 To install this `crontab` as the `choderalab` user:
 ```bash
@@ -101,8 +104,8 @@ crontab -l
 ```
 Transfers are logged in the `choderalab` account:
 ```
-plfah1-rsync-all-atoms.log
-plfah1-rsync-no-solvent.log
-plfah2-rsync-all-atoms.log
-plfah2-rsync-no-solvent.log
+plfah1-rsync3-all-atoms.log
+plfah1-rsync3-no-solvent.log
+plfah2-rsync3-all-atoms.log
+plfah2-rsync3-no-solvent.log
 ```
