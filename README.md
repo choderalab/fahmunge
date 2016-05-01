@@ -50,7 +50,7 @@ The projects CSV file will undergo minimal validation automatically to make sure
 ##### Advanced Usage
 
 More advanced usage allows additional arguments to be specified:
-* `--nprocesses <NPROCESSES>` will parallelize munging by RUN using `multiprocessing` if `NPROCESSES > 1` is specified. (**NOTE: Parallel processing is still experimental and tends to occasionally corrupt munged trajectories---we are working on fixing this.**) By default, a serial code path is used with `NPROCESSES = 1`.
+* `--nprocesses <NPROCESSES>` will parallelize munging by RUN using `multiprocessing` if `NPROCESSES > 1` is specified.  By default, `NPROCESSES = 1`.
 * `--time <TIME_LIMIT>` specifies that munging should move on to another phase or project after the given time limit (in seconds) is reached, once it is safe to move on.  This is useful for ensuring that some munging occurs on all projects of interest every day.
 * `--verbose` will produce verbose output
 * `--maxits <MAXITS>` will cause the munging pipeline to run for the specified number of iterations and then exit. This can be useful for debugging. Without specifying this option, munging will run indefinitely.
