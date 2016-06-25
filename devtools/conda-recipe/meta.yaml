@@ -19,7 +19,7 @@ requirements:
     - pandas
     - pytables
     - natsort
-    - mdtraj 1.5.1 # TODO remove me when segment_id bug is fixed (this is installed through openmoltools)
+    - mdtraj
 
   run:
     - python
@@ -27,7 +27,7 @@ requirements:
     - pandas
     - pytables
     - natsort
-    - mdtraj 1.5.1 # TODO remove me when segment_id bug is fixed (this is installed through openmoltools)
+    - mdtraj
 
 test:
   requires:
