@@ -34,6 +34,15 @@ Operating System :: Unix
 Operating System :: MacOS
 """
 
+from pip.req import parse_requirements
+
+# parse_requirements() returns generator of pip.req.InstallRequirement objects
+install_reqs = parse_requirements('requirements.txt', session=False)
+
+# reqs is a list of requirement
+# e.g. ['django==1.5.1', 'mezzanine==1.4.6']
+reqs = [str(ir.req) for ir in install_reqs]
+
 def find_packages():
     """Find all of fahmunge's python packages.
     Adapted from IPython's setupbase.py. Copyright IPython
@@ -155,4 +164,10 @@ setup(name='fahmunge',
       classifiers=CLASSIFIERS.splitlines(),
       packages=["fahmunge"],
       package_dir={'fahmunge': 'fahmunge'},
+      entry_points={
+        'console_scripts' : [
+            'munge-fah-data = fahmunge.cli:main',
+        ]
+      },
+      install_requires=reqs,
       **setup_kwargs)

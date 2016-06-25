@@ -197,7 +197,6 @@ def strip_water(path_to_merged_trajectories, output_path, topology_selection, mi
     for in_filename in in_filenames:
         protein_filename = os.path.join(output_path, os.path.basename(in_filename))
         args = (in_filename, protein_filename, min_num_frames, topology_selection)
-        work.append(args)
 
         # create no-solvent pdbs for all RUNs. Relies on trajectories having
         # runX-cloneY.h5 filename format
@@ -206,7 +205,23 @@ def strip_water(path_to_merged_trajectories, output_path, topology_selection, mi
         pdb_filename = os.path.join(output_path, pdb_name)
         if not os.path.exists(pdb_filename):
             print("Stripping solvent from '%s' to create '%s'" % (in_filename, pdb_filename))
-            create_nosolvent_pdb(in_filename, pdb_filename, topology_selection)
+            try:
+                create_nosolvent_pdb(in_filename, pdb_filename, topology_selection)
+            except Exception as e:
+                print(str(e))
+
+                # Sanity check that this is an HDF5 file.
+                if in_filename.endswith('.h5'):
+                    print("Deleting corrupted file '%s'..." % in_filename)
+                    os.remove(in_filename)
+
+                # Skip work.
+                print('Skipping solvent stripping...')
+                continue
+
+        # Append work
+        work.append(args)
+
 
     print('%s : %d trajectories to process' % (output_path, len(work)))
 
