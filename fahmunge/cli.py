@@ -1,12 +1,11 @@
-import itertools
 import time
-import numpy as np
 import os
 import glob
-import mdtraj as md
-import pandas as pd
 import argparse
 import sys
+import collections
+import datetime
+import pandas as pd
 
 import fahmunge
 
@@ -105,43 +104,119 @@ def main():
 
     # Main processing loop
     iteration = 0
+    initial_time = time.time()
     while((args.maximum_iterations is None) or (iteration < args.maximum_iterations)):
-        for (project, location, pdb, topology_selection) in projects.itertuples():
+        # Assemble list of CLONEs to process
+        print('----------' * 8)
+        print('Iteration %8d : Assembling list of CLONEs to process...' % iteration)
+        print(datetime.datetime.now().isoformat())
+        print('----------' * 8)
+        clones_to_process = collections.deque()
+        for (project, project_path, topology_filename, topology_selection) in projects.itertuples():
 
             if args.verbose:
-                print('----------' * 8)
-                print('Processing project %s' % project)
-                print("  location: '%s'" % location)
-                print("  reference PDB: '%s'" % pdb)
+                print('Project %s' % project)
+                print("  location: '%s'" % project_path)
+                print("  reference topology file: '%s'" % topology_filename)
                 print("  topology selection: '%s'" % topology_selection)
-                print('----------' * 8)
 
-            # Form output paths
-            allatom_output_path = os.path.join(args.output_path, "all-atoms/", "%s/" % project)
-            protein_output_path = os.path.join(args.output_path, "no-solvent/", "%s/" % project)
+            # Form output path
+            output_path = os.path.join(args.output_path, "%s/" % project)
 
-            # Make sure output paths exist
-            fahmunge.automation.make_path(allatom_output_path)
-            fahmunge.automation.make_path(protein_output_path)
+            # Make sure output path exists
+            fahmunge.automation.make_path(output_path)
 
-            # Munge data
-            fahmunge.automation.merge_fah_trajectories(location, allatom_output_path, pdb, nprocesses=args.nprocesses, maxtime=args.time_limit)
-            fahmunge.automation.strip_water(allatom_output_path, protein_output_path, topology_selection, nprocesses=args.nprocesses, maxtime=args.time_limit)
+            # Determine number of RUNs and CLONEs
+            n_runs, n_clones = fahmunge.automation.get_num_runs_clones(project_path)
 
-        # Report progress.
+            # Compile CLONEs to process
+            for run in range(n_runs):
+                for clone in range(n_clones):
+                    # Get clone source and destination paths
+                    clone_path = os.path.join(project_path, "RUN%d" % run, "CLONE%d" % clone)
+                    processed_clone_filename = os.path.join(output_path, "run%d-clone%d.h5" % (run, clone))
+                    # Form work packet
+                    work_args = (clone_path, topology_filename, processed_clone_filename, topology_selection)
+                    # Append work packet
+                    clones_to_process.append(work_args)
+
+        print('There are %d CLONEs to process' % len(clones_to_process))
+        print('----------' * 8)
         print('')
-        if (args.maximum_iterations is None):
-            print("Finished iteration %d, sleeping for %d seconds." % (iteration, args.sleep_time))
-        else:
-            print("Finished iteration %d / %d, sleeping for %d seconds." % (iteration, args.maximum_iterations, args.sleep_time))
-        print('')
+
+        # Munge data in parallel
+        print('----------' * 8)
+        print('Iteration %8d : Processing %d CLONEs...' % (iteration, len(clones_to_process)))
+        print(datetime.datetime.now().isoformat())
+        print('Using %d threads' % args.nprocesses)
+        print('----------' * 8)
+
+        # Settings for thread processing
+        from multiprocessing import Pool, Event
+        maxtasksperchild = None
+        print("Creating thread pool of %d threads..." % args.nprocesses)
+        pool = Pool(args.nprocesses, maxtasksperchild=maxtasksperchild)
+
+        # Create a syncrhonized Event to tell processes when to quit
+        terminate_event = Event()
+
+        def worker(args):
+            return fahmunge.core21.process_core21_clone(*args, terminate_event=terminate_event)
+
+        try:
+            print("Starting asynchronous map operations...")
+            job = pool.map_async(worker, clones_to_process, chunksize=1)
+            sleep_interval = 1 # seconds between polling of multiprocessing pool # TODO: Set this to 5
+            while( (not job.ready()) and (not terminate_event.is_set()) ):
+                time.sleep(sleep_interval)
+                elapsed_time = time.time() - initial_time
+                if args.time_limit and (elapsed_time > args.time_limit):
+                    print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
+                    terminate_event.set()
+        except KeyboardInterrupt:
+            print("Caught KeyboardInterrupt, safely terminating workers. This may take several minutes. Please be patient to avoid data corruption.")
+            # Signal termination
+            terminate_event.set()
+            # Close down the multiprocessing pool
+            pool.close()
+            pool.join()
+            sys.exit(1)
+        except Exception as e:
+            # An exception occurred; terminate.
+            raise e
+        finally:
+            print("Cleaning up...")
+            pool.close()
+            pool.join()
+            print('Done.')
+
+        # Report completion of iteration
+        print('Finished iteration %d.' % iteration)
 
         # Increment iteration counter
         iteration += 1
 
+        # If time limit has elapsed, terminate
+        elapsed_time = time.time() - initial_time
+        if args.time_limit and (elapsed_time > args.time_limit):
+            print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
+            return
+
         # Exit now if specified number of iterations is reached
-        if (args.maximum_iterations and (iteration >= args.maximum_iterations)):
+        if args.maximum_iterations and (iteration >= args.maximum_iterations):
+            print('Maximum number of iterations (%d) reached.' % args.maximum_iterations)
             return
 
         # Sleep
+        print("Sleeping for %d seconds." % (iteration, args.sleep_time))
         time.sleep(args.sleep_time)
+
+        # If time limit has elapsed, terminate
+        elapsed_time = time.time() - initial_time
+        if args.time_limit and (elapsed_time > args.time_limit):
+            print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
+            return
+
+        # End of iteration
+        print('----------' * 8)
+        print('')
