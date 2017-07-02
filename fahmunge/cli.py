@@ -96,16 +96,19 @@ def main():
     if args.maximum_iterations:
         print('Processing for a total of %d iterations' % args.maximum_iterations)
     if args.time_limit:
-        print('Will force safe advance to next phase after %s seconds' % args.time_limit)
+        print('Will run for %s seconds and terminate' % args.time_limit)
     if args.sleep_time:
         print('Will sleep for %s seconds between iterations' % args.sleep_time)
     print('')
 
+    # Set signal handling
+    signal_handler = fahmunge.core21.SignalHandler()
 
     # Main processing loop
     iteration = 0
+    terminate = False # if True, terminate
     initial_time = time.time()
-    while((args.maximum_iterations is None) or (iteration < args.maximum_iterations)):
+    while(not terminate):
         # Assemble list of CLONEs to process
         print('----------' * 8)
         print('Iteration %8d : Assembling list of CLONEs to process...' % iteration)
@@ -136,9 +139,14 @@ def main():
                     clone_path = os.path.join(project_path, "RUN%d" % run, "CLONE%d" % clone)
                     processed_clone_filename = os.path.join(output_path, "run%d-clone%d.h5" % (run, clone))
                     # Form work packet
-                    work_args = (clone_path, topology_filename, processed_clone_filename, topology_selection)
+                    work_args = (clone_path, topology_filename % vars(), processed_clone_filename, topology_selection)
                     # Append work packet
                     clones_to_process.append(work_args)
+
+            # Terminate if instructed
+            if signal_handler.terminate:
+                print('Signal caught; terminating.')
+                exit(1)
 
         print('There are %d CLONEs to process' % len(clones_to_process))
         print('----------' * 8)
@@ -160,35 +168,48 @@ def main():
         # Create a syncrhonized Event to tell processes when to quit
         terminate_event = Event()
 
-        def worker(args):
-            return fahmunge.core21.process_core21_clone(*args, terminate_event=terminate_event)
-
         try:
             print("Starting asynchronous map operations...")
-            job = pool.map_async(worker, clones_to_process, chunksize=1)
+            #job = pool.map_async(worker, clones_to_process, chunksize=1)
+            # DEBUG
+            for work_args in clones_to_process:
+                fahmunge.core21.process_core21_clone(*work_args, terminate_event=terminate_event)
+
             sleep_interval = 1 # seconds between polling of multiprocessing pool # TODO: Set this to 5
             while( (not job.ready()) and (not terminate_event.is_set()) ):
+                print('sleeping...')
                 time.sleep(sleep_interval)
+                # Terminate if maximum time has elapsed.
                 elapsed_time = time.time() - initial_time
                 if args.time_limit and (elapsed_time > args.time_limit):
                     print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
                     terminate_event.set()
+                    terminate = True
+                # Terminate if a signal has been caught
+                if signal_handler.terminate:
+                    print('Signal caught; terminating.')
+                    terminate_event.set()
+                    terminate = True
+
         except KeyboardInterrupt:
             print("Caught KeyboardInterrupt, safely terminating workers. This may take several minutes. Please be patient to avoid data corruption.")
             # Signal termination
             terminate_event.set()
+            terminate = True
             # Close down the multiprocessing pool
             pool.close()
             pool.join()
-            sys.exit(1)
+
         except Exception as e:
+            print('An exception occurred; terminating...')
             # An exception occurred; terminate.
+            print(e)
             raise e
+
         finally:
             print("Cleaning up...")
             pool.close()
             pool.join()
-            print('Done.')
 
         # Report completion of iteration
         print('Finished iteration %d.' % iteration)
@@ -200,22 +221,25 @@ def main():
         elapsed_time = time.time() - initial_time
         if args.time_limit and (elapsed_time > args.time_limit):
             print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
-            return
+            terminate = True
 
         # Exit now if specified number of iterations is reached
         if args.maximum_iterations and (iteration >= args.maximum_iterations):
             print('Maximum number of iterations (%d) reached.' % args.maximum_iterations)
+            terminate = True
+
+        if terminate:
             return
 
         # Sleep
-        print("Sleeping for %d seconds." % (iteration, args.sleep_time))
+        print("Sleeping for %d seconds." % (args.sleep_time))
         time.sleep(args.sleep_time)
 
         # If time limit has elapsed, terminate
         elapsed_time = time.time() - initial_time
         if args.time_limit and (elapsed_time > args.time_limit):
             print('Elapsed time (%.1f s) exceeds timeout (%.1f s); signaling jobs to terminate.' % (elapsed_time, args.time_limit))
-            return
+            terminate = True
 
         # End of iteration
         print('----------' * 8)
