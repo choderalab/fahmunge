@@ -194,8 +194,9 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     * Include a safer way to substitute vars()
 
     """
-    print('Processing clone %s' % clone_path)
-    sys.stdout.flush()
+    # Check for early termination since topology reading might take a while
+    if terminate_event.is_set():
+        return
 
     MAX_FILEPATH_LENGTH = 1024 # MAXIMUM FILEPATH LENGTH; this may be too short for some installations
 
@@ -273,3 +274,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
 
     # Sync the trajectory file to flush all data to disk
     trj_file.close()
+
+def test_worker(*args, **kwargs):
+    print('args: %s' % args)
+    print('kwargs: %s' % kwargs)

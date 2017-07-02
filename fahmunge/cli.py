@@ -11,6 +11,13 @@ import fahmunge
 
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
+def setup_worker(terminate_event):
+    global global_terminate_event
+    global_terminate_event = terminate_event
+
+def worker(args):
+    return fahmunge.core21.process_core21_clone(*args, terminate_event=global_terminate_event)
+
 def main():
     description = 'Munge FAH data'
     parser = argparse.ArgumentParser(description=description)
@@ -161,23 +168,17 @@ def main():
 
         # Settings for thread processing
         from multiprocessing import Pool, Event
-        maxtasksperchild = None
         print("Creating thread pool of %d threads..." % args.nprocesses)
-        pool = Pool(args.nprocesses, maxtasksperchild=maxtasksperchild)
-
-        # Create a syncrhonized Event to tell processes when to quit
         terminate_event = Event()
+        pool = Pool(args.nprocesses, setup_worker, (terminate_event,))
 
         try:
             print("Starting asynchronous map operations...")
-            #job = pool.map_async(worker, clones_to_process, chunksize=1)
-            # DEBUG
-            for work_args in clones_to_process:
-                fahmunge.core21.process_core21_clone(*work_args, terminate_event=terminate_event)
+            #job = pool.map_async(fahmunge.core21.process_core21_clone, clones_to_process, chunksize=1)
+            job = pool.map_async(worker, clones_to_process, chunksize=1)
 
-            sleep_interval = 1 # seconds between polling of multiprocessing pool # TODO: Set this to 5
+            sleep_interval = 5 # seconds between polling of multiprocessing pool
             while( (not job.ready()) and (not terminate_event.is_set()) ):
-                print('sleeping...')
                 time.sleep(sleep_interval)
                 # Terminate if maximum time has elapsed.
                 elapsed_time = time.time() - initial_time
