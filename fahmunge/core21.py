@@ -83,7 +83,7 @@ def list_core21_result_packets(clone_path):
 
     return result_packets
 
-def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=None, chunksize=10):
+def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=None, chunksize=10, delete_on_unpack=False):
     """
     Ensure that the specified result packet is decompressed.
 
@@ -91,7 +91,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
     * decompress it into a temporary directory
     * move it into place
     * verify integrity of files
-    * unlink (delete) the old result packet if everything looks OK
+    * unlink (delete) the old result packet if everything looks OK [OPTIONAL]
 
     If this is a directory, this function returns immediately.
 
@@ -107,6 +107,9 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
     atom_indices : list of int, optional, default=None
         Atom indices to read when verifying integrity of trajectory
         If None, all atoms will be read.
+    delete_on_unpack : bool, optional, default=True
+        If True, will delete old ws8-style .tar.bz2 files after they have been unpacked.
+        WARNING: THIS COULD BE DANGEROUS
     chunksize : int, optional, default=10
         Number of frames to read each call to mdtraj.iterload for verifying trajectory integrity
 
@@ -160,14 +163,15 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Cleanup archive object
         del archive
 
-        # Remove archive permanently
-        # TODO: Uncomment this after rigorous testing
-        #os.unlink(result_packet)
+        if delete_on_unpack:
+            # Remove archive permanently
+            print("      Permanently removing %s" % absfilename)
+            os.unlink(absfilename)
 
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, chunksize=10):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, chunksize=10):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -190,6 +194,9 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         MDTraj DSL specifying which atoms should be stripped from source WUs.
     terminate_event : multiprocessing.Event, optional, default=None
         If specified, will terminate early if terminate_event.is_set() is True
+    delete_on_unpack : bool, optional, default=True
+        If True, will delete old ws8-style .tar.bz2 files after they have been unpacked.
+        WARNING: THIS COULD BE DANGEROUS
     chunksize : int, optional, default=10
         Chunksize (in number of frames) to use for mdtraj.iterload reading of trajectory
 
@@ -257,7 +264,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
             continue
 
         # If the result packet is compressed, decompress it and return the new directory name
-        result_packet = ensure_result_packet_is_decompressed(result_packet, work_unit_topology)
+        result_packet = ensure_result_packet_is_decompressed(result_packet, work_unit_topology, delete_on_unpack=delete_on_unpack)
 
         # Check that we haven't violated our filename length assumption
         if len(result_packet) > MAX_FILEPATH_LENGTH:
