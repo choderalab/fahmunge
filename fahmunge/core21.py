@@ -171,7 +171,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, chunksize=10):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, chunksize=10, signal_handler=None):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -199,6 +199,8 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         WARNING: THIS COULD BE DANGEROUS
     chunksize : int, optional, default=10
         Chunksize (in number of frames) to use for mdtraj.iterload reading of trajectory
+    signal_handler : SignalHandler, optional, default=None
+        If None, a new SignalHandler object will be created.
 
     TODO
     ----
@@ -212,9 +214,8 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
 
     MAX_FILEPATH_LENGTH = 1024 # MAXIMUM FILEPATH LENGTH; this may be too short for some installations
 
-    # TODO: Either spawn a new thread equipped with a signal handler
-    # or make sure we are inside a newly spawned thread
-    signal_handler = SignalHandler()
+    if not signal_handler:
+        signal_handler = SignalHandler()
 
     # Read the topology for the source WU
     # TODO: Only read topology if we have not processed all the WU packets

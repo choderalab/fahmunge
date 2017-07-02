@@ -172,7 +172,11 @@ def main():
             print('Using serial debug mode')
             print('----------' * 8)
             for packed_args in clones_to_process:
-                fahmunge.core21.process_core21_clone(*packed_args, delete_on_unpack=args.delete_on_unpack)
+                fahmunge.core21.process_core21_clone(*packed_args, delete_on_unpack=args.delete_on_unpack, signal_handler=signal_handler)
+                # Terminate if instructed
+                if signal_handler.terminate:
+                    print('Signal caught; terminating.')
+                    exit(1)
         else:
             # Settings for thread processing
             print('Using %d threads' % args.nprocesses)
