@@ -16,9 +16,12 @@ import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
 from natsort import natsorted
+import tempfile
+import shutil
 import time
 import copy
 import sys
+import re
 
 ################################################################################
 # ws9 core21 support
@@ -119,16 +122,18 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
 
     # If this is a tarball, extract salient information.
     # Format: results-002.tar.bz2
-    (basepath, filename) = os.path.split(result_packet)
-    if not re.match(r'results-\d\d\d.tar.bz2', filename):
+    absfilename = os.path.abspath(result_packet)
+    (basepath, filename) = os.path.split(absfilename)
+    pattern = r'results-(\d+).tar.bz2'
+    if not re.match(pattern, filename):
         raise Exception("Compressed results packet filename '%s' does not match expected format (results-001.tar.bz2)" % result_packet)
-    frame_number = int(re.match(r'results-(\d+).tar.bz2', filename).group(0))
+    frame_number = int(re.match(pattern, filename).group(1))
 
     # Extract frames from trajectory in a temporary directory
-    absfilename = os.path.abspath(filename)
+    print("      Extracting %s" % result_packet)
     with enter_temp_directory():
         # Create target directory
-        extracted_archive_directory = 'results'
+        extracted_archive_directory = tempfile.mkdtemp()
 
         # Extract all contents
         archive = tarfile.open(absfilename, mode='r:bz2')
@@ -138,7 +143,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         new_result_packet = os.path.join(basepath, 'results%d' % frame_number)
 
         # Move directory into place
-        os.shutil.move(extracted_archive_directory, new_result_packet)
+        shutil.move(extracted_archive_directory, new_result_packet)
 
         # Verify integrity of archive contents
         xtc_filename = os.path.join(new_result_packet, 'positions.xtc')
@@ -195,7 +200,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
 
     """
     # Check for early termination since topology reading might take a while
-    if terminate_event.is_set():
+    if terminate_event and terminate_event.is_set():
         return
 
     MAX_FILEPATH_LENGTH = 1024 # MAXIMUM FILEPATH LENGTH; this may be too short for some installations
@@ -205,13 +210,15 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     signal_handler = SignalHandler()
 
     # Read the topology for the source WU
+    # TODO: Only read topology if we have not processed all the WU packets
+    # TODO: Use LRU cache to cache work_unit_topology based on filename
     print('Reading topology from %s...' % topology_filename)
     top = md.load(topology_filename)
     work_unit_topology = copy.deepcopy(top.topology) # extract topology
     del top # close file
 
     # Check for early termination since topology reading might take a while
-    if terminate_event.is_set():
+    if terminate_event and terminate_event.is_set():
         return
 
     # Determine atoms that will be written to trajectory

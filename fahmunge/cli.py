@@ -174,7 +174,9 @@ def main():
 
         try:
             print("Starting asynchronous map operations...")
-            #job = pool.map_async(fahmunge.core21.process_core21_clone, clones_to_process, chunksize=1)
+            # TODO: Add serial version for debugging
+            #for packed_args in clones_to_process:
+            #    fahmunge.core21.process_core21_clone(*packed_args)
             job = pool.map_async(worker, clones_to_process, chunksize=1)
 
             sleep_interval = 5 # seconds between polling of multiprocessing pool
