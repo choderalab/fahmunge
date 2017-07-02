@@ -282,6 +282,6 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     # Sync the trajectory file to flush all data to disk
     trj_file.close()
 
-def test_worker(*args, **kwargs):
-    print('args: %s' % args)
-    print('kwargs: %s' % kwargs)
+    # Make sure we tell everyone to terminate if we are terminating
+    if signal_handler.terminate and (not terminate_event.is_set()):
+        terminate_event.set()
