@@ -1,5 +1,6 @@
 from . import fah
 from . import automation
+from . import core21
 
 # versioneer
 from ._version import get_versions
