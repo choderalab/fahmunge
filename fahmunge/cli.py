@@ -6,6 +6,7 @@ import sys
 import collections
 import datetime
 import pandas as pd
+import mdtraj as md
 
 import fahmunge
 
