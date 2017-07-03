@@ -220,7 +220,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     # Read the topology for the source WU
     # TODO: Only read topology if we have not processed all the WU packets
     # TODO: Use LRU cache to cache work_unit_topology based on filename
-    print('Reading topology from %s...' % topology_filename)
+    print('Reading topology from %s for clone %s...' % (topology_filename, clone_path))
     top = md.load(topology_filename)
     work_unit_topology = copy.deepcopy(top.topology) # extract topology
     del top # close file
