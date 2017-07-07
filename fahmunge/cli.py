@@ -88,7 +88,6 @@ def main():
         else:
             pdb_filenames_to_check = [ pdb ] # just one filename
         for pdb_filename in pdb_filenames_to_check:
-            pdb_filename = pdb % vars()
             if not os.path.exists(pdb_filename):
                 raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
             if args.validate_topology_selection:
