@@ -44,6 +44,8 @@ def main():
         help='Sleep for specified time (in seconds) between iterations (default: 0)')
     parser.add_argument('-v', '--version', action='store_true', default=False,
         help='Print version information and exit')
+    parser.add_argument('-c', '--compress-xml', metavar='COMPRESS', dest='compress_xml', action='store_true', default=False,
+        help='If specified, will compress XML data')
     args = parser.parse_args()
 
     if args.version:
@@ -172,7 +174,7 @@ def main():
             print('Using serial debug mode')
             print('----------' * 8)
             for packed_args in clones_to_process:
-                fahmunge.core21.process_core21_clone(*packed_args, delete_on_unpack=args.delete_on_unpack, signal_handler=signal_handler)
+                fahmunge.core21.process_core21_clone(*packed_args, delete_on_unpack=args.delete_on_unpack, compress_xml=args.compress_xml, signal_handler=signal_handler)
                 # Terminate if instructed
                 if signal_handler.terminate:
                     print('Signal caught; terminating.')

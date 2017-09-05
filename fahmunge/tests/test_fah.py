@@ -1,6 +1,6 @@
 from __future__ import print_function
 import mdtraj as md
-from mdtraj.testing import get_fn, eq, DocStringFormatTester, skipif
+from mdtraj.testing import get_fn, eq, skipif
 from mdtraj.utils import six
 import os
 import shutil

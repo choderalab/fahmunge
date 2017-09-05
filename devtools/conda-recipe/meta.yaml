@@ -46,7 +46,7 @@ test:
     # Test parallel
     - echo "Testing parallel processing"
     - rm -rf munged
-    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --validate --nprocesses 2
+    - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --validate --nprocesses 2 --compress-xml
     # Test restart after unpacking (shouldn't actually do anything)
     - echo "Testing additional processing iterations"
     - munge-fah-data --projects projects.csv --outpath munged --maxits 1 --validate --nprocesses 2
@@ -54,7 +54,8 @@ test:
     - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --sleeptime 1
     # TODO: Test to make sure expected output is found
     - ls -ltr munged/11507
-    - ls -ltr munged/11431
+    - ls -ltr munged/11431    
+    - ls -ltr PROJ11507/RUN?/CLONE?/results?/*.xml.gz
     # Remove unpacked files
     - rm -rf PROJ11507/RUN?/CLONE?/results?
     - rm -rf PROJ11419/RUN?/CLONE?/results?

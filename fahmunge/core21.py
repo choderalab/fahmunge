@@ -16,8 +16,10 @@ import tables
 from mdtraj.utils.contextmanagers import enter_temp_directory
 from mdtraj.utils import six
 from natsort import natsorted
+import subprocess
 import tempfile
 import shutil
+import glob
 import time
 import copy
 import sys
@@ -83,7 +85,7 @@ def list_core21_result_packets(clone_path):
 
     return result_packets
 
-def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=None, chunksize=10, delete_on_unpack=False):
+def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=None, chunksize=10, delete_on_unpack=False, compress_xml=False):
     """
     Ensure that the specified result packet is decompressed.
 
@@ -110,6 +112,8 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
     delete_on_unpack : bool, optional, default=True
         If True, will delete old ws8-style .tar.bz2 files after they have been unpacked.
         WARNING: THIS COULD BE DANGEROUS
+    compress_xml : bool, optional, default=False
+        If True, will compress XML files after unpacking them.
     chunksize : int, optional, default=10
         Number of frames to read each call to mdtraj.iterload for verifying trajectory integrity
 
@@ -142,6 +146,12 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         archive = tarfile.open(absfilename, mode='r:bz2')
         archive.extractall(path=extracted_archive_directory)
 
+        # Compress XML files
+        if compress_xml:
+            xml_filenames = glob.glob('%s/*.xml' % extracted_archive_directory)
+            for filename in xml_filenames:
+                subprocess.call(['gzip', filename])
+
         # Create new result packet name
         new_result_packet = os.path.join(basepath, 'results%d' % frame_number)
 
@@ -171,7 +181,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, chunksize=10, signal_handler=None):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -197,6 +207,8 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     delete_on_unpack : bool, optional, default=True
         If True, will delete old ws8-style .tar.bz2 files after they have been unpacked.
         WARNING: THIS COULD BE DANGEROUS
+    compress_xml : bool, optional, default=False
+        If True, will compress XML files after unpacking them.
     chunksize : int, optional, default=10
         Chunksize (in number of frames) to use for mdtraj.iterload reading of trajectory
     signal_handler : SignalHandler, optional, default=None
@@ -265,7 +277,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
             continue
 
         # If the result packet is compressed, decompress it and return the new directory name
-        result_packet = ensure_result_packet_is_decompressed(result_packet, work_unit_topology, delete_on_unpack=delete_on_unpack)
+        result_packet = ensure_result_packet_is_decompressed(result_packet, work_unit_topology, delete_on_unpack=delete_on_unpack, compress_xml=compress_xml)
 
         # Check that we haven't violated our filename length assumption
         if len(result_packet) > MAX_FILEPATH_LENGTH:
