@@ -150,6 +150,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         if compress_xml:
             xml_filenames = glob.glob('%s/*.xml' % extracted_archive_directory)
             for filename in xml_filenames:
+                print("      Compressing %s" % os.path.basename(filename))
                 subprocess.call(['gzip', filename])
 
         # Create new result packet name

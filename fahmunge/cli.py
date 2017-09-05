@@ -12,14 +12,16 @@ import fahmunge
 
 # Reads in a list of project details from a CSV file with Core17/18 FAH projects and munges them.
 
-def setup_worker(terminate_event, delete_on_unpack):
+def setup_worker(terminate_event, delete_on_unpack, compress_xml):
     global global_terminate_event
     global_terminate_event = terminate_event
     global global_delete_on_unpack
     global_delete_on_unpack = delete_on_unpack
+    global global_compress_xml
+    global_compress_xml = compress_xml
 
 def worker(args):
-    return fahmunge.core21.process_core21_clone(*args, terminate_event=global_terminate_event, delete_on_unpack=global_delete_on_unpack)
+    return fahmunge.core21.process_core21_clone(*args, terminate_event=global_terminate_event, delete_on_unpack=global_delete_on_unpack, compress_xml=global_compress_xml)
 
 def main():
     description = 'Munge FAH data'
@@ -44,7 +46,7 @@ def main():
         help='Sleep for specified time (in seconds) between iterations (default: 0)')
     parser.add_argument('-v', '--version', action='store_true', default=False,
         help='Print version information and exit')
-    parser.add_argument('-c', '--compress-xml', metavar='COMPRESS', dest='compress_xml', action='store_true', default=False,
+    parser.add_argument('-c', '--compress-xml', dest='compress_xml', action='store_true', default=False,
         help='If specified, will compress XML data')
     args = parser.parse_args()
 
@@ -186,7 +188,7 @@ def main():
             from multiprocessing import Pool, Event
             print("Creating thread pool of %d threads..." % args.nprocesses)
             terminate_event = Event()
-            pool = Pool(args.nprocesses, setup_worker, (terminate_event,args.delete_on_unpack))
+            pool = Pool(args.nprocesses, setup_worker, (terminate_event, args.delete_on_unpack, args.compress_xml))
 
 
             try:
