@@ -62,6 +62,7 @@ More advanced usage allows additional arguments to be specified:
 * `--maxits <MAXITS>` will cause the munging pipeline to run for the specified number of iterations and then exit. This can be useful for debugging. Without specifying this option, munging will run indefinitely.
 * `--sleeptime <SLEEPTIME>` will cause munging to sleep for the specified number of seconds if no work was done in this iteration (default:3600).
 * `--validate` will validate the choice of `topology_selection` MDTraj DSL topology selection queries to make sure they are valid; note that this may take a significant amount of time, so is optional behavior
+* `--compress-xml` will compress `.xml` files after unpacking them from old-WS-style result packages to save space
 
 #### Usage on `choderalab` Folding@home servers
 
