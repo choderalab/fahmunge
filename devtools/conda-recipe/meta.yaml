@@ -15,12 +15,7 @@ requirements:
   build:
     - setuptools
     - python
-    - numpy
-    - pandas
-    - pytables
-    - natsort
-    - mdtraj
-
+    
   run:
     - python
     - numpy
@@ -54,7 +49,7 @@ test:
     - munge-fah-data --projects projects.csv --outpath munged --maxits 2 --sleeptime 1
     # TODO: Test to make sure expected output is found
     - ls -ltr munged/11507
-    - ls -ltr munged/11431    
+    - ls -ltr munged/11431
     - ls -ltr PROJ11507/RUN?/CLONE?/results?/*.xml.gz
     # Remove unpacked files
     - rm -rf PROJ11507/RUN?/CLONE?/results?
