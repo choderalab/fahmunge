@@ -3,8 +3,6 @@ from __future__ import print_function
 import mdtraj as md
 
 import pytest
-from mdtraj.utils import six
-from mdtraj.testing import get_fn, eq
 import os
 import shutil
 import tarfile
@@ -18,6 +16,8 @@ def test_dummy():
     pass
 
 def deprecated_test_fah_core17_1():
+    from mdtraj.utils import six
+    from mdtraj.testing import get_fn, eq
     filename = get_fn('frame0.xtc')
     tempdir = tempfile.mkdtemp()
     tar_filename = os.path.join(tempdir, "results-000.tar.bz2")
