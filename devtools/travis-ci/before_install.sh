@@ -3,7 +3,16 @@ pushd .
 cd $HOME
 
 # Install Miniconda
-MINICONDA=Miniconda2-latest-Linux-x86_64.sh
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    # Make OSX md5 mimic md5sum from linux, alias does not work
+    md5sum () {
+        command md5 -r "$@"
+    }
+    MINICONDA=Miniconda3-latest-MacOSX-x86_64.sh
+else
+    MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+    export PYTHON_VER=$TRAVIS_PYTHON_VERSION
+fi
 MINICONDA_HOME=$HOME/miniconda
 MINICONDA_MD5=$(curl -s https://repo.continuum.io/miniconda/ | grep -A3 $MINICONDA | sed -n '4p' | sed -n 's/ *<td>\(.*\)<\/td> */\1/p')
 wget -q https://repo.continuum.io/miniconda/$MINICONDA
@@ -16,8 +25,12 @@ bash $MINICONDA -b -p $MINICONDA_HOME
 # Configure miniconda
 export PIP_ARGS="-U"
 export PATH=$MINICONDA_HOME/bin:$PATH
-conda update --yes conda
-conda install --yes conda-build==2.1.17 jinja2 anaconda-client pip
+
+conda config --add channels conda-forge --add channels omnia
+    
+conda config --set always_yes yes
+conda install conda conda-build jinja2 anaconda-client
+conda update --quiet --all
 
 # Restore original directory
 popd

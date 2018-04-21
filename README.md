@@ -1,10 +1,12 @@
+[//]: # (Badges)
 [![Build Status](https://travis-ci.org/choderalab/fahmunge.png)](https://travis-ci.org/choderalab/fahmunge)
+[![codecov](https://codecov.io/gh/choderalab/fahmunge/branch/master/graph/badge.svg)](https://codecov.io/gh/choderalab/fahmunge/branch/master)
 [![Anaconda Cloud Badge](https://anaconda.org/omnia/fahmunge/badges/version.svg)](https://anaconda.org/omnia/fahmunge)
 [![Downloads](https://anaconda.org/omnia/fahmunge/badges/downloads.svg)](https://anaconda.org/omnia/fahmunge)
 
-## FAHMunge
+## fahmunge
 
-A tool to automate processing of Folding@home data to produce [mdtraj](http://mdtraj.org/)-compatible trajectory sets.
+A tool for automated processing of Folding@home data to produce [mdtraj](http://mdtraj.org)-compatible trajectory sets.
 
 #### Authors
 * Kyle A. Beauchamp
@@ -116,3 +118,8 @@ plfah1-rsync3-no-solvent.log
 plfah2-rsync3-all-atoms.log
 plfah2-rsync3-no-solvent.log
 ```
+
+#### Acknowledgements
+
+Project skeleton based on the
+[Computational Chemistry Python Cookiecutter](https://github.com/choderalab/cookiecutter-python-comp-chem)
