@@ -11,6 +11,12 @@ import tarfile
 import tempfile
 from fahmunge import fah
 
+# TODO: Add unit tests for components of the code.
+
+def test_dummy():
+    """Dummy test to ensure py.test doesn't exist with error code 5."""
+    pass
+
 def deprecated_test_fah_core17_1():
     filename = get_fn('frame0.xtc')
     tempdir = tempfile.mkdtemp()
