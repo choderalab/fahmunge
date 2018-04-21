@@ -11,7 +11,7 @@ import tarfile
 import tempfile
 from fahmunge import fah
 
-def test_fah_core17_1():
+def deprecated_test_fah_core17_1():
     filename = get_fn('frame0.xtc')
     tempdir = tempfile.mkdtemp()
     tar_filename = os.path.join(tempdir, "results-000.tar.bz2")
