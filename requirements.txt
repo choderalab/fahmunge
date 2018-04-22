@@ -1,5 +1,0 @@
-numpy
-pandas
-tables
-natsort
-mdtraj

@@ -66,6 +66,6 @@ docs/examples/*.py
 docs/examples/.ipynb_checkpoints/
 examples/.ipynb_checkpoints/
 
-projects.csv 
+projects.csv
 PROJ10495/*
 p10495/*
