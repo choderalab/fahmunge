@@ -32,7 +32,7 @@ conda install --yes -c omnia fahmunge
 
 Basic usage simply specifies a project CSV file and an output path for the munged data:
 ```bash
-munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged3 --nprocesses 16
+munge-fah-data --projects projects.csv --outpath /data/choderalab/fah/munged3 --nprocesses 16 --validate
 ```
 The metadata for FAH is a CSV file located here on `choderalab` FAH servers:
 ```
