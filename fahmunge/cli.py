@@ -74,13 +74,14 @@ def main():
     # Check that all locations and PDB files exist, raising an exception if they do not (indicating misconfiguration)
     # TODO: Parallelize validation by entry?
     print('Validating contents of project CSV file...')
-    for (project, location, pdb, topology_selection) in projects.itertuples():
+    for (project, location, pdb, topology_selection, alignment_reference, alignment_selection) in projects.itertuples():
         # Check project path exists.
         if not os.path.exists(location):
             raise Exception("Project %s: Cannot find data path '%s'. Check that you specified the correct location." % (project, location))
         # Check PDB file(s) exist
         # TODO: Check atom counts match?
         # TODO: Generalize with a generator for iterating over all RUN/CLONEs?
+        # TODO: Check alignment_reference PDB
         n_runs, n_clones = fahmunge.automation.get_num_runs_clones(location)
         print("Project %s: %d RUNs %d CLONEs found; topology_selection = '%s'" % (project, n_runs, n_clones, topology_selection))
         if '%' in pdb:
@@ -92,9 +93,9 @@ def main():
         else:
             pdb_filenames_to_check = [ pdb ] # just one filename
         for pdb_filename in pdb_filenames_to_check:
-            if not os.path.exists(pdb_filename):
-                raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
             if args.validate_topology_selection:
+                if not os.path.exists(pdb_filename):
+                    raise Exception("Project %s: PDB filename specified as '%s' but '%s' was not found. Check that you specified the correct path and PDB files are present." % (project, pdb, pdb_filename))
                 # Check toplogy selection is valid.
                 # TODO: Report on original and stripped atom numbers
                 traj = md.load(pdb_filename)
@@ -130,12 +131,14 @@ def main():
         print(datetime.datetime.now().isoformat())
         print('----------' * 8)
         clones_to_process = collections.deque()
-        for (project, project_path, topology_filename, topology_selection) in projects.itertuples():
+        for (project, project_path, topology_filename, topology_selection, alignment_reference, alignment_selection) in projects.itertuples():
 
             print('Project %s' % project)
             print("  location: '%s'" % project_path)
             print("  reference topology file: '%s'" % topology_filename)
             print("  topology selection: '%s'" % topology_selection)
+            print("  alignment reference topology file: '%s'" % alignment_reference)
+            print("  alignment topology selection: '%s'" % alignment_selection)
 
             # Form output path
             output_path = os.path.join(args.output_path, "%s/" % project)
@@ -153,7 +156,7 @@ def main():
                     clone_path = os.path.join(project_path, "RUN%d" % run, "CLONE%d" % clone)
                     processed_clone_filename = os.path.join(output_path, "run%d-clone%d.h5" % (run, clone))
                     # Form work packet
-                    work_args = (clone_path, topology_filename % vars(), processed_clone_filename, topology_selection)
+                    work_args = (clone_path, topology_filename % vars(), processed_clone_filename, topology_selection, alignment_reference % vars(), alignment_selection)
                     # Append work packet
                     clones_to_process.append(work_args)
 

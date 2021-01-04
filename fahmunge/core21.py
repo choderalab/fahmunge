@@ -182,7 +182,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, alignment_reference=None, alignment_selection=None, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -203,6 +203,11 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         Path to concatenated stripped trajectory
     atom_selection_string : str
         MDTraj DSL specifying which atoms should be stripped from source WUs.
+    alignment_reference : str, optional, default=None
+        Path to PDB or other file containing topollogy information for reference structure; 
+        atom ordering of selection must match that of topology_filename once selection is extracted
+    alignment_selection : str, optional, default=None
+        MDTraj DSL specifying which atoms should be stripped from alignment_reference and topology_filename topologies 
     terminate_event : multiprocessing.Event, optional, default=None
         If specified, will terminate early if terminate_event.is_set() is True
     delete_on_unpack : bool, optional, default=True
@@ -238,6 +243,10 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     work_unit_topology = copy.deepcopy(top.topology) # extract topology
     del top # close file
 
+    # Read alignment topology
+    print('  Reading alignment topology from %s...' % alignment_reference)
+    alignment_trajectory = md.load(topology_filename)
+    
     # Check for early termination since topology reading might take a while
     if terminate_event and terminate_event.is_set():
         return
@@ -245,6 +254,10 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     # Determine atoms that will be written to trajectory
     atom_indices = work_unit_topology.select(atom_selection_string)
 
+    # Determine which atoms will be used for alignment
+    align_traj_atom_indices = work_unit_topology.select(alignment_selection)
+    align_ref_atom_indices = alignment_trajectory.topology.select(alignment_selection)    
+        
     # Create a new Topology for the atom subset to be written to the trajectory
     trajectory_topology = work_unit_topology.subset(atom_indices)
 
@@ -296,6 +309,11 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         print("   Processing %s" % result_packet)
         xtc_filename = os.path.join(result_packet, "positions.xtc")
         for chunk in md.iterload(xtc_filename, top=work_unit_topology, atom_indices=atom_indices, chunk=chunksize):
+            # Align chunk to reference
+            if alignment_reference is not None:
+                chunk.superpose(alignment_trajectory, frame=0, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
+
+            # Write the chunk
             trj_file.write(coordinates=chunk.xyz, cell_lengths=chunk.unitcell_lengths, cell_angles=chunk.unitcell_angles, time=chunk.time)
         # Record that we've processed the WU
         trj_file._handle.root.processed_folders.append([result_packet])
@@ -303,6 +321,10 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     # Sync the trajectory file to flush all data to disk
     trj_file.close()
 
+    # Clean up alignment topology
+    if alignment_reference is not None:
+        del alignment_trajectory
+    
     # Make sure we tell everyone to terminate if we are terminating
     if signal_handler.terminate and terminate_event:
         terminate_event.set()
