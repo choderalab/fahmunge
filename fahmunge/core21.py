@@ -182,7 +182,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, alignment_reference=None, alignment_selection=None, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, alignment_reference=None, alignment_selection=None, number_imaged_chains=None, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -204,10 +204,12 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     atom_selection_string : str
         MDTraj DSL specifying which atoms should be stripped from source WUs.
     alignment_reference : str, optional, default=None
-        Path to PDB or other file containing topollogy information for reference structure; 
+        Path to PDB or other file containing topology information for reference structure; 
         atom ordering of selection must match that of topology_filename once selection is extracted
     alignment_selection : str, optional, default=None
         MDTraj DSL specifying which atoms should be stripped from alignment_reference and topology_filename topologies 
+    number_imaged_chains : int, optional, default=None
+        The number of chains to be used for imaging. The chains are sorted from largest to smallest with the value used to determine how many to include
     terminate_event : multiprocessing.Event, optional, default=None
         If specified, will terminate early if terminate_event.is_set() is True
     delete_on_unpack : bool, optional, default=True
@@ -246,7 +248,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
     # Read alignment topology
     print('  Reading alignment topology from %s...' % alignment_reference)
     alignment_trajectory = md.load(topology_filename)
-    
+
     # Check for early termination since topology reading might take a while
     if terminate_event and terminate_event.is_set():
         return
@@ -256,10 +258,16 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
 
     # Determine which atoms will be used for alignment
     align_traj_atom_indices = work_unit_topology.select(alignment_selection)
-    align_ref_atom_indices = alignment_trajectory.topology.select(alignment_selection)    
-        
+    align_ref_atom_indices = alignment_trajectory.topology.select(alignment_selection)
+
     # Create a new Topology for the atom subset to be written to the trajectory
     trajectory_topology = work_unit_topology.subset(atom_indices)
+
+    # get anchor molecules based on chain size
+    if alignment_reference is not None:
+        all_molecules = alignment_trajectory.topology.find_molecules()
+        all_molecules.sort(key=lambda x: -len(x))
+        anchors = all_molecules[:int(number_imaged_chains)]
 
     # Glob file paths and return result files in sequential order.
     result_packets = list_core21_result_packets(clone_path)
@@ -311,6 +319,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         for chunk in md.iterload(xtc_filename, top=work_unit_topology, atom_indices=atom_indices, chunk=chunksize):
             # Align chunk to reference
             if alignment_reference is not None:
+                chunk = chunk.image_molecules(anchor_molecules=anchors)
                 chunk.superpose(alignment_trajectory, frame=0, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
 
             # Write the chunk

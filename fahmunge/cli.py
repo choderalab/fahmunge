@@ -74,7 +74,7 @@ def main():
     # Check that all locations and PDB files exist, raising an exception if they do not (indicating misconfiguration)
     # TODO: Parallelize validation by entry?
     print('Validating contents of project CSV file...')
-    for (project, location, pdb, topology_selection, alignment_reference, alignment_selection) in projects.itertuples():
+    for (project, location, pdb, topology_selection, alignment_reference, alignment_selection, number_imaged_chains) in projects.itertuples():
         # Check project path exists.
         if not os.path.exists(location):
             raise Exception("Project %s: Cannot find data path '%s'. Check that you specified the correct location." % (project, location))
@@ -131,7 +131,7 @@ def main():
         print(datetime.datetime.now().isoformat())
         print('----------' * 8)
         clones_to_process = collections.deque()
-        for (project, project_path, topology_filename, topology_selection, alignment_reference, alignment_selection) in projects.itertuples():
+        for (project, project_path, topology_filename, topology_selection, alignment_reference, alignment_selection, number_imaged_chains) in projects.itertuples():
 
             print('Project %s' % project)
             print("  location: '%s'" % project_path)
@@ -139,6 +139,7 @@ def main():
             print("  topology selection: '%s'" % topology_selection)
             print("  alignment reference topology file: '%s'" % alignment_reference)
             print("  alignment topology selection: '%s'" % alignment_selection)
+            print("  number of chains for imaging: '%s'" % number_imaged_chains)
 
             # Form output path
             output_path = os.path.join(args.output_path, "%s/" % project)
@@ -156,7 +157,7 @@ def main():
                     clone_path = os.path.join(project_path, "RUN%d" % run, "CLONE%d" % clone)
                     processed_clone_filename = os.path.join(output_path, "run%d-clone%d.h5" % (run, clone))
                     # Form work packet
-                    work_args = (clone_path, topology_filename % vars(), processed_clone_filename, topology_selection, alignment_reference % vars(), alignment_selection)
+                    work_args = (clone_path, topology_filename % vars(), processed_clone_filename, topology_selection, alignment_reference % vars(), alignment_selection, number_imaged_chains)
                     # Append work packet
                     clones_to_process.append(work_args)
 
