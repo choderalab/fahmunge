@@ -269,6 +269,17 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         all_molecules.sort(key=lambda x: -len(x))
         anchors = all_molecules[:int(number_imaged_chains)]
 
+        # chains_for_imaging = number_imaged_chains.split(',')
+
+        # anchors = []
+        # for chain in chains_for_imaging:
+        #     chain_set = set()
+        #     chain_indices = alignment_trajectory.topology.select(chain)
+        #     for atom in alignment_trajectory.topology.atoms:
+        #         if atom.index in chain_indices:
+        #             chain_set.add(atom)
+        #     anchors.append(chain_set)
+
     # Glob file paths and return result files in sequential order.
     result_packets = list_core21_result_packets(clone_path)
 
@@ -319,7 +330,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         for chunk in md.iterload(xtc_filename, top=work_unit_topology, atom_indices=atom_indices, chunk=chunksize):
             # Align chunk to reference
             if alignment_reference is not None:
-                chunk = chunk.image_molecules(anchor_molecules=anchors)
+                #chunk = chunk.image_molecules(anchor_molecules=anchors)
                 chunk.superpose(alignment_trajectory, frame=0, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
 
             # Write the chunk
