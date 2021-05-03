@@ -182,7 +182,7 @@ def ensure_result_packet_is_decompressed(result_packet, topology, atom_indices=N
         # Return updated result packet directory name
         return new_result_packet
 
-def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, alignment_reference=None, alignment_selection=None, number_imaged_chains=None, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
+def process_core21_clone(clone_path, topology_filename, processed_trajectory_filename, atom_selection_string, alignment_reference=None, alignment_selection=None, number_imaged_chains=None, alignment_frame=0, terminate_event=None, delete_on_unpack=False, compress_xml=False, chunksize=10, signal_handler=None):
     """
     Process core21 result packets in a CLONE, concatenating to a specified trajectory.
     This will append to the specified trajectory if it already exists.
@@ -210,6 +210,8 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         MDTraj DSL specifying which atoms should be stripped from alignment_reference and topology_filename topologies 
     number_imaged_chains : int, optional, default=None
         The number of chains to be used for imaging. The chains are sorted from largest to smallest with the value used to determine how many to include
+    alignment_frame: int, optional, default=0
+        The frame to use for alignment if an alignment reference is supplied.
     terminate_event : multiprocessing.Event, optional, default=None
         If specified, will terminate early if terminate_event.is_set() is True
     delete_on_unpack : bool, optional, default=True
@@ -331,7 +333,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
             # Align chunk to reference
             if alignment_reference is not None:
                 #chunk = chunk.image_molecules(anchor_molecules=anchors)
-                chunk.superpose(alignment_trajectory, frame=0, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
+                chunk.superpose(alignment_trajectory, frame=alignment_frame, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
 
             # Write the chunk
             trj_file.write(coordinates=chunk.xyz, cell_lengths=chunk.unitcell_lengths, cell_angles=chunk.unitcell_angles, time=chunk.time)
