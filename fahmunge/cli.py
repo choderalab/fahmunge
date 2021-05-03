@@ -74,7 +74,7 @@ def main():
     # Check that all locations and PDB files exist, raising an exception if they do not (indicating misconfiguration)
     # TODO: Parallelize validation by entry?
     print('Validating contents of project CSV file...')
-    for (project, location, pdb, topology_selection, alignment_reference, alignment_selection, number_imaged_chains) in projects.itertuples():
+    for (project, location, pdb, topology_selection, alignment_reference, alignment_selection, number_imaged_chains, alignment_frame) in projects.itertuples():
         # Check project path exists.
         if not os.path.exists(location):
             raise Exception("Project %s: Cannot find data path '%s'. Check that you specified the correct location." % (project, location))
