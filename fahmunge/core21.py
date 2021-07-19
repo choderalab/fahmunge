@@ -330,7 +330,7 @@ def process_core21_clone(clone_path, topology_filename, processed_trajectory_fil
         for chunk in md.iterload(xtc_filename, top=work_unit_topology, atom_indices=atom_indices, chunk=chunksize):
             # Align chunk to reference
             if alignment_reference is not None:
-                #chunk = chunk.image_molecules(anchor_molecules=anchors)
+                chunk = chunk.image_molecules(anchor_molecules=anchors)
                 chunk.superpose(alignment_trajectory, frame=0, atom_indices=align_traj_atom_indices, ref_atom_indices=align_ref_atom_indices, parallel=False)
 
             # Write the chunk
